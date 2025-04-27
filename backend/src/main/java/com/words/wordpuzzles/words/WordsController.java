@@ -19,13 +19,11 @@ public class WordsController {
     }
 
     @GetMapping
-    public List<Words> getWord(
-        @RequestParam(required = false, defaultValue = "50") int size,
-        @RequestParam(required = false, defaultValue = "0") int offset,
+    public Words getWord(
         @RequestParam(required = false) Integer wordLength,
-        @RequestParam(required = false) Integer difficulty){
+        @RequestParam(required = false) Integer rarity){
         
-        return wordRepository.getWord(size, offset, wordLength, difficulty);
+        return wordRepository.getWord(wordLength, rarity);
 
     }
 }

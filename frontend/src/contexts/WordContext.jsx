@@ -2,12 +2,29 @@ import { createContext, useContext, useState } from "react";
 const WordContext = createContext(); // Create the context
 
 export const WordProvider = ({ children }) => {
+  if (!localStorage.getItem("Settings")) {
+    localStorage.setItem("Settings", JSON.stringify({ wordLength: 5, difficulty: -1 }));
+  }
+  
+  const stored_Setting = JSON.parse(localStorage.getItem("Settings")) || {wordLength: 5, difficulty: -1}
+
+  
+
   const minWordLength = 3;
   const maxWordlength = 7;
   const [word, setWord] = useState('');
-  const [settings, setSettings] = useState({wordLength: 5, difficulty: -1});
+  const [settings, setSettings] = useState(stored_Setting);
+
+  const changeSettings = (newSetting) =>{
+    localStorage.setItem("Settings", JSON.stringify(newSetting))
+    setSettings(newSetting)
+  }
 
   const getNewWord = () => {
+
+    const stats = JSON.parse(localStorage.getItem("Statistics"))
+    localStorage.setItem("Statistics", JSON.stringify({...stats, gamesPlayed: stats.gamesPlayed+1 }));
+
     let length = settings.wordLength;
     
     if(length == -1){
@@ -29,7 +46,7 @@ export const WordProvider = ({ children }) => {
   }
 
   return (
-    <WordContext.Provider value={[word, getNewWord, settings, setSettings]}>
+    <WordContext.Provider value={[word, getNewWord, settings, changeSettings]}>
       {children}
     </WordContext.Provider>
   );

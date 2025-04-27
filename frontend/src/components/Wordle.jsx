@@ -116,10 +116,31 @@ function Wordle() {
 
     }, [word])
 
+    useEffect(() =>{
+        let stats = JSON.parse(localStorage.getItem("Statistics"))
+        if(isGameWon){
+            
+            localStorage.setItem("Statistics", JSON.stringify(
+                {...stats, 
+                    wins: stats.wins+1, 
+                    currentStreak: stats.currentStreak+1,
+                    bestStreak: (stats.bestStreak < stats.currentStreak+1) ? stats.currentStreak+1 : stats.bestStreak
+                }
+            ));
+        }
+        else if(isGameOver){
+            localStorage.setItem("Statistics", JSON.stringify(
+                {...stats, 
+                    currentStreak: 0
+                }
+            ));
+        }
+    }, [isGameWon])
+
     let popup = <></>
 
     if(isGameOver){
-        let newGameBtn = <button className="!bg-[#6AC66A] !text-white" onClick={()=> getNewWord()}>New New Game</button>
+        let newGameBtn = <button className="!bg-[#6AC66A] !text-white" onClick={()=> getNewWord()}>New Game</button>
 
         if(isGameWon){
             popup = <Popup show={isGameOver} onClose={()=>{}} headerContent={"You Won! 🏆"} children={newGameBtn}/>
@@ -129,6 +150,8 @@ function Wordle() {
         }
         
     }
+
+
 
 
     //maybe clean this up
