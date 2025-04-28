@@ -39,7 +39,6 @@ public class JdbcWordsRepository {
         return jdbcClient.sql(sql.toString() + ";")
                         .params(paramArray) 
                         .query(Words.class)
-                        .list()
-                        .get(0);
+                        .single();
     }
 }

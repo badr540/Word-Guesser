@@ -5,10 +5,11 @@ import java.util.UUID;
 
 
 public record Sessions(
-            UUID sessionID,
-            Integer userID,
+            UUID sessionId,
+            Integer userId,
             String word,
+            Integer rarity,
             Integer attempts,
-            LocalDateTime expires_at
+            LocalDateTime expiresAt
 
 ){}
