@@ -1,8 +1,12 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 DROP TABLE IF EXISTS words;
-DROP TABLE IF EXISTS sessions;
-DROP TYPE IF EXISTS word_difficulty;
+
+
+DROP TABLE IF EXISTS game_sessions;
+DROP TYPE IF EXISTS game_status;
+
+CREATE TYPE game_status AS ENUM ('WON', 'LOST', 'IN_PROGRESS');
 
 CREATE TABLE words (
     id SERIAL PRIMARY KEY,
@@ -10,9 +14,10 @@ CREATE TABLE words (
     rarity INT NOT NULL
 );
 
-CREATE TABLE sessions (
+CREATE TABLE game_sessions (
     session_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id INT,
+    status game_status NOT NULL DEFAULT 'IN_PROGRESS',
     word TEXT NOT NULL,
     rarity INT NOT NULL,
     attempts INT NOT NULL DEFAULT 6,

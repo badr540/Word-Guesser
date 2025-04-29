@@ -10,16 +10,16 @@ import java.util.Optional;
 
 @RestController 
 @RequestMapping("/get-word") 
-public class WordsController {
+public class WordController {
 
-    private final JdbcWordsRepository wordRepository;
+    private final WordRepository wordRepository;
 
-    WordsController(JdbcWordsRepository wordRepository) {
+    WordController(WordRepository wordRepository) {
         this.wordRepository = wordRepository;
     }
 
     @GetMapping
-    public Words getWord(
+    public Word getWord(
         @RequestParam(required = false) Integer wordLength,
         @RequestParam(required = false) Integer rarity){
         

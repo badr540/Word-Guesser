@@ -9,15 +9,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Repository
-public class JdbcWordsRepository {
+public class WordRepository {
 
     private final JdbcClient jdbcClient;
 
-    public JdbcWordsRepository(JdbcClient jdbcClient) {
+    public WordRepository(JdbcClient jdbcClient) {
         this.jdbcClient = jdbcClient;
     }
 
-    public Words getWord(Integer wordLength,Integer rarity){
+    public Word getWord(Integer wordLength, Integer rarity){
 
         StringBuilder sql = new StringBuilder("SELECT * FROM words WHERE 1=1 ");
         List<Object> params = new ArrayList<>();
@@ -28,7 +28,7 @@ public class JdbcWordsRepository {
         }
 
         if(rarity != null) {
-            sql.append("AND rarity = ?");
+            sql.append("AND rarity = ? ");
             params.add(rarity);
         }
 
@@ -38,7 +38,7 @@ public class JdbcWordsRepository {
 
         return jdbcClient.sql(sql.toString() + ";")
                         .params(paramArray) 
-                        .query(Words.class)
+                        .query(Word.class)
                         .single();
     }
 }

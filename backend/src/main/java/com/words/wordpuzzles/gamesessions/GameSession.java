@@ -1,12 +1,12 @@
-package com.words.wordpuzzles.sessions;
+package com.words.wordpuzzles.gamesessions;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-
-public record Sessions(
+public record GameSession(
             UUID sessionId,
             Integer userId,
+            GameStatus status,
             String word,
             Integer rarity,
             Integer attempts,
