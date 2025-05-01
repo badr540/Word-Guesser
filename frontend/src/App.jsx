@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import Header from './components/Header.jsx'
-import { WordProvider } from './contexts/WordContext.jsx'
+import { SessionProvider } from './contexts/SessionContext.jsx';
 import Wordle from './components/Wordle.jsx'
 
 function App() {
@@ -10,14 +10,14 @@ function App() {
 
   return (
     <>
-      <WordProvider>
+      <SessionProvider>
         <div className="min-h-screen">
           <Header/>
           <main>
             <Wordle />
           </main>
         </div>
-      </WordProvider>
+      </SessionProvider>
     </>
   )
 }

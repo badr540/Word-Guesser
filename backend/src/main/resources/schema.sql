@@ -20,7 +20,7 @@ CREATE TABLE game_sessions (
     status game_status NOT NULL DEFAULT 'IN_PROGRESS',
     word TEXT NOT NULL,
     rarity INT NOT NULL,
-    attempts INT NOT NULL DEFAULT 6,
+    attempts INT NOT NULL DEFAULT 5,
     expires_at TIMESTAMP NOT NULL DEFAULT (NOW() + INTERVAL '1 hour')
 );
 

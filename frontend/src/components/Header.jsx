@@ -1,18 +1,18 @@
 import { useState, useContext, useEffect } from "react";
-import WordContext from "../contexts/WordContext";
 import HeaderButton from "./HeaderButton"
 import Popup from "./popup"
+import SessionContext from "../contexts/SessionContext";
 
 function Header() {
 
-  const [word, getNewWord, settings, changeSettings] = useContext(WordContext)
+  const [session, sessionHandler, settings, changeSettings] = useContext(SessionContext)
   const [showGiveUp, setShowGiveUp] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
   //give up popup
-  let newGameBtn = <button className="!bg-[#6AC66A] !text-white" onClick={()=> {getNewWord(); setShowGiveUp(false)}}>New Game</button>
-  let children = <><span className="gray-700 font-extralight">the answer was:</span> <div className="bg-gray-300 border-gray-400 border-2 rounded-xl p-3 pl-6 pr-6  w-fit mx-auto">{word}</div><br></br></>
+  let newGameBtn = <button className="!bg-[#6AC66A] !text-white" onClick={()=> {sessionHandler.createSession(); setShowGiveUp(false)}}>New Game</button>
+  let children = <><span className="gray-700 font-extralight">the answer was:</span> <div className="bg-gray-300 border-gray-400 border-2 rounded-xl p-3 pl-6 pr-6  w-fit mx-auto">{session != null && session.word}</div><br></br></>
   let giveupPopup = <Popup show={showGiveUp} onClose={()=>{}} headerContent={"You Lost!"}>{children}  {newGameBtn}</Popup>
   //settings popup
   let sizeSetting = 
@@ -20,12 +20,13 @@ function Header() {
     <span>number of letters</span>
     <div className="flex w-fit">
       <button 
-      className={(settings.wordLength == -1) && "!bg-[#6AC66A] !text-white"} 
+      key={-1}
+      className={(settings.wordLength == -1) ? "!bg-[#6AC66A] !text-white" : undefined} 
       onClick={ () => {changeSettings({...settings, wordLength: -1})}}
       >any</button>
-
       {Array.from( {length: 7}, (_,index) => 
       <button 
+      key={index}
       className={(settings.wordLength == index+3) && "!bg-[#6AC66A] !text-white"} 
       onClick={ () => {changeSettings({...settings, wordLength: index + 3})}}
       >{index + 3}</button>)}
@@ -38,12 +39,14 @@ function Header() {
     <span>difficulty</span>
     <div className="flex w-fit">
       <button 
+
       className={(settings.difficulty == -1) && "!bg-[#6AC66A] !text-white"} 
       onClick={ () => {changeSettings({...settings, difficulty: -1})}}
       >any</button>
 
       {Array.from( {length: 4}, (_,index) => 
       <button 
+      key={index}
       className={(settings.difficulty == index) && "!bg-[#6AC66A] !text-white"} 
       onClick={ () => {changeSettings({...settings, difficulty: index})}}
       >{index}</button>)}
@@ -94,12 +97,6 @@ function Header() {
   let statsPopup = <Popup show={showStats} onClose={()=>{setShowStats(false)}} headerContent={"Statistics"}>{statsElements} {restStats}</Popup>
 
   
-
-
-
-  useEffect(()=>{
-    console.log("word updated") 
-  }, [word])
 
   return (
     <>

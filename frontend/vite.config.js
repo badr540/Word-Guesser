@@ -10,7 +10,10 @@ export default defineConfig({
   ],
   server: {
     proxy: {
-      '/get-word': 'http://localhost:8080', // Proxy specific paths
+      '/session': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
     },
   },
 

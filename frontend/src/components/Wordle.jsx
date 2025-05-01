@@ -2,6 +2,7 @@ import { useState, useContext, useEffect } from "react";
 import LetterSlot from "./LetterSlot";
 import Key from "./Key";
 import WordContext from "../contexts/WordContext";
+import SessionContext from "../contexts/SessionContext";
 import Popup from "./popup"
 
 import Confetti from 'react-confetti'
@@ -11,27 +12,18 @@ function Wordle() {
     const maxGuesses = 6;
     const [guesses, setGuesses] = useState(0)
     const [guessLength, setGuessLength] = useState(0)
-    const [word, getNewWord] = useContext(WordContext)
+    const [session, sessionHandler] = useContext(SessionContext)
     const [board, setBoard] = useState(Array.from({ length: maxGuesses }, (_, index) => 
-        Array.from({ length: word.length }, (_, index) => 
+        Array.from({ length: 4 }, (_, index) => 
             ({letter:"", inWord:false, inCorrectPosition:false, guessed:false}) ) ))
 
     const [isGameOver, setGameOver] = useState(false)
     const [isGameWon, setGameWon] = useState(false)
 
-
-    console.log(word)
-
-
+    useEffect(() => {
+        sessionHandler.createSession()
+    }, []);
     
-    function isLetterinWord(letter){
-        return word.toLowerCase().indexOf(letter.toLowerCase()) != -1;
-    }
-
-    function isLetterinCorrectPosition(letter, position){
-        return word[position].toLowerCase() == letter.toLowerCase();
-    }
-
     function handleGameInput(key){
         if(key == 'DEL'){
             if(guessLength > 0){
@@ -42,29 +34,14 @@ function Wordle() {
             }
         }
         else if(key == 'Enter'){
-            if(guessLength == word.length){
+            if(guessLength == session.word.length){
                 //check if its correct here
-                let correctLetters = board[guesses].reduce((rAcc, slot, idx) =>(rAcc += isLetterinCorrectPosition(slot.letter, idx) ? 1 : 0), 0) 
-                
-
-                if(correctLetters == word.length){
-                    setGameOver(true)
-                    setGameWon(true)
-                }
-
-                setBoard(board.map((row, idx) => 
-                    (idx == guesses)? row.map((slot,idx) =>  
-                        ({...slot, inWord:isLetterinWord(slot.letter), inCorrectPosition:isLetterinCorrectPosition(slot.letter, idx), guessed:true})) : row ))
-                setGuesses((val) => val+1)
-                setGuessLength(0)
-
-                
-
+                let word = board[guesses].reduce((s, slot, idx) => (s += slot.letter),(""))
+                sessionHandler.makeGuess(word)
                 
             }
         }
-
-        else if(guessLength < word.length){
+        else if(guessLength < session.word.length){
             console.log(guessLength)
             setBoard(board.map((row, idx) => 
                 (idx == guesses)? row.map((slot,idx) => (idx == guessLength ? {...slot, letter: key} : slot )) : row ))
@@ -74,7 +51,6 @@ function Wordle() {
     }
 
     useEffect(() => {
-
         if(guesses == maxGuesses){
             setGameOver(true)
         }
@@ -98,23 +74,31 @@ function Wordle() {
         return () => {
           window.removeEventListener("keydown", handleKeyDown); // cleanup
         };
-    }, [guessLength, guesses, word, board]);
+    }, [guessLength, guesses, session, board]);
 
 
     useEffect(() => {
-        getNewWord()
-    }, []);
+        console.log(session.word)
 
-    useEffect(() => {
-        setBoard(Array.from({ length: maxGuesses }, (_, index) => 
-            Array.from({ length: word.length }, (_, index) => 
-                ({letter:"", inWord:false, inCorrectPosition:false, guessed:false}) ) ))
-        setGameOver(false)
-        setGameWon(false)
-        setGuesses(0)
+        setBoard(board.map((row, idx) => 
+            (idx == guesses)? row.map((slot,idx) =>  
+                ({...slot, inWord: session.word[idx] == '!', inCorrectPosition: /^[a-zA-Z]$/.test(session.word[idx]),  guessed:true})) : row ))
+        setGuesses((val) => val+1)
         setGuessLength(0)
 
-    }, [word])
+
+        setGameOver(session.status != "IN_PROGRESS")
+        setGameWon(session.status == "WON")
+
+        if(session.attempts == 5){
+            setBoard(Array.from({ length: maxGuesses }, (_, index) => 
+                Array.from({ length: session.word.length }, (_, index) => 
+                    ({letter:"", inWord:false, inCorrectPosition:false, guessed:false}) ) ))
+            setGuesses(0)
+            setGuessLength(0)
+        }
+
+    }, [session])
 
     useEffect(() =>{
         let stats = JSON.parse(localStorage.getItem("Statistics"))
@@ -140,12 +124,12 @@ function Wordle() {
     let popup = <></>
 
     if(isGameOver){
-        let newGameBtn = <button className="!bg-[#6AC66A] !text-white" onClick={()=> getNewWord()}>New Game</button>
+        let newGameBtn = <button className="!bg-[#6AC66A] !text-white" onClick={()=> sessionHandler.createSession()}>New Game</button>
 
         if(isGameWon){
             popup = <Popup show={isGameOver} onClose={()=>{}} headerContent={"You Won! 🏆"} children={newGameBtn}/>
         }else{
-            let children = <><span className="gray-700 font-extralight">the answer was:</span> <div className="bg-gray-300 border-gray-400 border-2 rounded-xl p-3 pl-6 pr-6  w-fit mx-auto">{word}</div><br></br></>
+            let children = <><span className="gray-700 font-extralight">the answer was:</span> <div className="bg-gray-300 border-gray-400 border-2 rounded-xl p-3 pl-6 pr-6  w-fit mx-auto">{session.word}</div><br></br></>
             popup = <Popup show={isGameOver} onClose={()=>{}} headerContent={"You Lost!"}>{children}  {newGameBtn}</Popup>
         }
         

@@ -24,7 +24,7 @@ export const WordProvider = ({ children }) => {
 
     const stats = JSON.parse(localStorage.getItem("Statistics"))
     localStorage.setItem("Statistics", JSON.stringify({...stats, gamesPlayed: stats.gamesPlayed+1 }));
-
+    
     let length = settings.wordLength;
     
     if(length == -1){

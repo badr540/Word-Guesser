@@ -65,9 +65,9 @@ public class GameSessionService {
     public GameSession guess(GameSession session){
         
         
-        String guessedWord = session.word();
+        String guessedWord = session.word().toLowerCase();
         session = gameSessionRepository.read(session.sessionId());
-        String realWord = session.word();
+        String realWord = session.word().toLowerCase();
 
         if (session.status() != GameStatus.IN_PROGRESS){
             return session;

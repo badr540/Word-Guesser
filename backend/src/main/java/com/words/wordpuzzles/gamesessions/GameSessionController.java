@@ -27,7 +27,9 @@ public class GameSessionController {
 
         return gameSessionService.createSession(userId, wordLength, rarity);
     }
+    
 
+    //unused
     @GetMapping(value = "/{sessionId}")
     public GameSession sessionStatus(@PathVariable UUID sessionId){
         return gameSessionService.status(sessionId);
