@@ -9,6 +9,7 @@ export default defineConfig({
     tailwindcss() 
   ],
   server: {
+    host: true,
     proxy: {
       '/session': {
         target: 'http://localhost:8080',

@@ -5,6 +5,9 @@ import com.words.wordpuzzles.words.WordRepository;
 import com.words.wordpuzzles.words.Word;
 
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -39,6 +42,8 @@ public class GameSessionService {
         sessionId, 
         userId, 
         session.status(), 
+        session.guesses(),
+        session.results(),
         outputWord, 
         session.rarity(), 
         session.attempts(), 
@@ -47,14 +52,33 @@ public class GameSessionService {
         return outputSession;
     }
 
-    public GameSession status(UUID sessionId){
-        GameSession session = gameSessionRepository.read(sessionId);
+    public GameSession status(GameSession session){
+        String result = session.word();
+        GameStatus status = session.status();
+        session = gameSessionRepository.read(session.sessionId());
         
+        if(session.status() != GameStatus.LOST && session.expiresAt() < System.currentTimeMillis()){
+            status = GameStatus.LOST;
+            result = session.word();
+            gameSessionRepository.update(new GameSession(
+            session.sessionId(),
+            session.userId(),
+            status, 
+            session.guesses(),
+            session.results(),
+            session.word(),
+            session.rarity(), 
+            session.attempts(), 
+            session.expiresAt()), session.sessionId());
+        }
+
         session = new GameSession(
         session.sessionId(),
         session.userId(),
-        session.status(), 
-        "*".repeat(session.word().length()),
+        status, 
+        session.guesses(),
+        session.results(),
+        result,
         session.rarity(), 
         session.attempts(), 
         session.expiresAt());
@@ -68,40 +92,10 @@ public class GameSessionService {
         String guessedWord = session.word().toLowerCase();
         session = gameSessionRepository.read(session.sessionId());
         String realWord = session.word().toLowerCase();
-
+        int attempts  = session.attempts()-1;
         if (session.status() != GameStatus.IN_PROGRESS){
             return session;
         }
-        else if(guessedWord.equals(realWord)){
-            //whatever needs to be handled here like adding a win to a players record
-            GameSession updatedSession = new GameSession(
-            session.sessionId(), 
-            session.userId(), 
-            GameStatus.WON, 
-            realWord, 
-            session.rarity(), 
-            session.attempts()-1, 
-            session.expiresAt());
-            
-            gameSessionRepository.update(updatedSession, session.sessionId());
-
-            return updatedSession;
-        }
-        else if(session.attempts() == 0){
-            GameSession updatedSession = new GameSession(
-            session.sessionId(), 
-            session.userId(), 
-            GameStatus.LOST, 
-            realWord, 
-            session.rarity(), 
-            session.attempts(), 
-            session.expiresAt());
-           
-            gameSessionRepository.update(updatedSession, session.sessionId());
-            
-            return updatedSession;
-        }
-        
 
         String guessOutput = "";   
         for(int i = 0; i < realWord.length(); i ++){
@@ -117,16 +111,57 @@ public class GameSessionService {
                 guessOutput += '*';
             }
         }
-        
-        //figure out a cleaner way to do this 
 
+        List<String> guesses = new ArrayList<>(session.guesses());
+        List<String> results = new ArrayList<>(session.results());
+        guesses.add(guessedWord);
+        results.add(guessOutput);
+        
+        if(guessedWord.equals(realWord)){
+            //whatever needs to be handled here like adding a win to a players record
+            GameSession updatedSession = new GameSession(
+            session.sessionId(), 
+            session.userId(), 
+            GameStatus.WON, 
+            guesses,
+            results,
+            realWord, 
+            session.rarity(), 
+            attempts, 
+            session.expiresAt());
+            
+            gameSessionRepository.update(updatedSession, session.sessionId());
+
+            return updatedSession;
+        }
+        else if(attempts <= 0 || session.expiresAt() < System.currentTimeMillis()){
+            GameSession updatedSession = new GameSession(
+            session.sessionId(), 
+            session.userId(), 
+            GameStatus.LOST, 
+            session.guesses(),
+            session.results(),
+            realWord, 
+            session.rarity(), 
+            attempts, 
+            session.expiresAt());
+           
+            gameSessionRepository.update(updatedSession, session.sessionId());
+            
+            return updatedSession;
+        }
+
+
+        //figure out a cleaner way to do this 
         GameSession updatedSession = new GameSession(
         session.sessionId(), 
         session.userId(), 
         GameStatus.IN_PROGRESS, 
+        guesses,
+        results,
         session.word(), 
         session.rarity(), 
-        session.attempts()-1, 
+        attempts, 
         session.expiresAt());
         
         gameSessionRepository.update(updatedSession, session.sessionId());
@@ -135,9 +170,11 @@ public class GameSessionService {
         session.sessionId(), 
         session.userId(), 
         GameStatus.IN_PROGRESS, 
+        guesses,
+        results,
         guessOutput, 
         session.rarity(), 
-        session.attempts()-1, 
+        attempts, 
         session.expiresAt());
 
         return returnedSession;
@@ -153,6 +190,8 @@ public class GameSessionService {
         session.sessionId(), 
         session.userId(), 
         GameStatus.LOST, 
+        session.guesses(),
+        session.results(),
         session.word(), 
         session.rarity(), 
         session.attempts(), 

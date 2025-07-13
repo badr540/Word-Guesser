@@ -10,7 +10,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/sessions")
-
 public class GameSessionController {
 
     private final GameSessionService gameSessionService;
@@ -28,11 +27,9 @@ public class GameSessionController {
         return gameSessionService.createSession(userId, wordLength, rarity);
     }
     
-
-    //unused
-    @GetMapping(value = "/{sessionId}")
-    public GameSession sessionStatus(@PathVariable UUID sessionId){
-        return gameSessionService.status(sessionId);
+    @PostMapping("/status")
+    public GameSession sessionStatus(@RequestBody GameSession userSession){
+        return gameSessionService.status(userSession);
     }
     
     @PostMapping("/guess")

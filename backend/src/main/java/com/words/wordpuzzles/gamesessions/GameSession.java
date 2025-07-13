@@ -1,15 +1,15 @@
 package com.words.wordpuzzles.gamesessions;
-
-import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public record GameSession(
-            UUID sessionId,
-            Integer userId,
-            GameStatus status,
-            String word,
-            Integer rarity,
-            Integer attempts,
-            LocalDateTime expiresAt
-
+    UUID sessionId,
+    Integer userId,
+    GameStatus status,
+    List<String> guesses,
+    List<String> results,
+    String word,
+    Integer rarity,
+    Integer attempts,
+    Long expiresAt
 ){}

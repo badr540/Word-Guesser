@@ -18,10 +18,13 @@ CREATE TABLE game_sessions (
     session_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id INT,
     status game_status NOT NULL DEFAULT 'IN_PROGRESS',
+    guesses TEXT[] DEFAULT '{}',
+    results TEXT[] DEFAULT '{}',
     word TEXT NOT NULL,
     rarity INT NOT NULL,
-    attempts INT NOT NULL DEFAULT 5,
-    expires_at TIMESTAMP NOT NULL DEFAULT (NOW() + INTERVAL '1 hour')
+    attempts INT NOT NULL DEFAULT 6,
+    expires_at BIGINT DEFAULT ((extract(epoch from now() + INTERVAL '1 hour') * 1000)::BIGINT)
+
 );
 
 -- created_at TIMESTAMP NOT NULL DEFAULT NOW(),
