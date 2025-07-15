@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
 function formatTime(seconds) {
+  if(seconds < 0 || (typeof seconds !== "number")) seconds = 0
+  
   const minutes = Math.floor(seconds / 60);
   const secs = seconds % 60;
   return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;

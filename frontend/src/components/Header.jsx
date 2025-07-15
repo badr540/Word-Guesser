@@ -22,6 +22,7 @@ function Header() {
 
   //          
 
+  const onTimeout = (session.status == "IN_PROGRESS") ? () => sessionHandler.checkStatus() : () =>{}
   return (
     <>
       <header className="flex justify-center items-center p-2"  >
@@ -30,7 +31,7 @@ function Header() {
         <div className="flex justify-evenly w-10/12">
           <div className="space-x-1 h-full flex justify-evenly"> 
             <HeaderButton onClick={() => {setShowGiveUp((val) => !val); sessionHandler.giveup()}}>give up</HeaderButton>
-            <Timer time={timeLeft} onTimeout={() => sessionHandler.checkStatus()}/>
+            <Timer time={timeLeft} onTimeout={onTimeout}/>
           </div>
           <div className="space-x-1 h-full">
             <HeaderButton onClick={()=> setShowStats(true)}>stats</HeaderButton>
