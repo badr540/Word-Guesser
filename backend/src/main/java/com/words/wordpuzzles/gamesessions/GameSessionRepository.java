@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.sql.DataSource;
@@ -25,8 +26,7 @@ public class GameSessionRepository {
     public GameSessionRepository(JdbcClient jdbcClient, DataSource dataSource) {
         this.jdbcClient = jdbcClient;
         this.dataSource = dataSource;
-    }
-
+    } 
     
     public void create(UUID sessionId, Integer userId, String word, Integer rarity){
         long unixMillis = System.currentTimeMillis() + minutesInMillis(2);
@@ -34,17 +34,16 @@ public class GameSessionRepository {
         jdbcClient.sql("INSERT INTO game_sessions (session_id, user_id, word, rarity, expires_at) VALUES(?,?,?,?,?);")
         .params(List.of(sessionId, userId, word, rarity, unixMillis))
         .update();      
-
-        //Sessions session = jdbcClient.sql("SELECT * FROM sessions WHERE session_id = ? ;")
-        //.param(session_id)
-        //.query(Sessions.class)
-        //.single();
-//
-        //String returnedWord = "*".repeat(word.length());
-        //Sessions returnedSession = new Sessions(session.sessionId(), session.userId(), returnedWord, session.rarity(), session.attempts(), session.expiresAt());
-
     }
 
+    public boolean exists(UUID sessionId){
+        Optional<GameSession> session = jdbcClient.sql("SELECT * FROM game_sessions WHERE session_id = ? ;")
+        .param(sessionId)
+        .query(new GameSessionRowMapper())
+        .Optional();
+
+        return session.isPresent();
+    }
 
     public GameSession read(UUID sessionId){
         return jdbcClient.sql("SELECT * FROM game_sessions WHERE session_id = ? ;")

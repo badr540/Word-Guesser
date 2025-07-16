@@ -1,7 +1,6 @@
 package com.words.wordpuzzles.gamesessions;
 
-import com.words.wordpuzzles.words.WordRepository;
-
+import com.words.wordpuzzles.words.WordService;
 import com.words.wordpuzzles.words.Word;
 
 import org.springframework.stereotype.Service;
@@ -15,18 +14,28 @@ import java.util.UUID;
 public class GameSessionService {
 
     private final GameSessionRepository gameSessionRepository;
-    private final WordRepository wordRepository;
+    private final WordService wordService;
 
-    GameSessionService(GameSessionRepository gameSessionRepository, WordRepository wordRepository) {
+    GameSessionService(GameSessionRepository gameSessionRepository, WordService wordService) {
         this.gameSessionRepository = gameSessionRepository;
-        this.wordRepository = wordRepository;        
+        this.wordService = wordService;        
+    }
+
+    public GameSession getSession(UUID uuid){
+        if(gameSessionRepository.exists(uuid)){
+            GameSession session = gameSessionRepository.read(uuid);
+            //hide the word here
+            return session;
+        }
+
+        return null;
     }
 
     public GameSession createSession(Integer userId, Integer wordLength, Integer rarity){
 
         UUID sessionId = UUID.randomUUID();
 
-        Word word = wordRepository.getWord(wordLength, rarity);
+        Word word = wordService.getRandomWord(wordLength, rarity);
         
         if(userId == null){
             userId = -1;
@@ -53,11 +62,12 @@ public class GameSessionService {
     }
 
     public GameSession status(GameSession session){
+
         String result = session.word();
         GameStatus status = session.status();
         session = gameSessionRepository.read(session.sessionId());
         
-        if(session.status() != GameStatus.LOST && session.expiresAt() < System.currentTimeMillis()){
+        if(session.expiresAt() < System.currentTimeMillis()){
             status = GameStatus.LOST;
             result = session.word();
             gameSessionRepository.update(new GameSession(
@@ -87,9 +97,13 @@ public class GameSessionService {
     }
 
     public GameSession guess(GameSession session){
-        
-        
         String guessedWord = session.word().toLowerCase();
+        
+        if(!wordService.isWordReal(guessedWord)){
+            return session;
+        }
+
+        
         session = gameSessionRepository.read(session.sessionId());
         String realWord = session.word().toLowerCase();
         int attempts  = session.attempts()-1;

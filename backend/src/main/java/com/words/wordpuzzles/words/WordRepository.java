@@ -1,4 +1,5 @@
 package com.words.wordpuzzles.words;
+import java.util.Optional;
 
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
@@ -17,7 +18,7 @@ public class WordRepository {
         this.jdbcClient = jdbcClient;
     }
 
-    public Word getWord(Integer wordLength, Integer rarity){
+    public Optional<Word> read(Integer wordLength, Integer rarity, String word){
 
         StringBuilder sql = new StringBuilder("SELECT * FROM words WHERE 1=1 ");
         List<Object> params = new ArrayList<>();
@@ -32,6 +33,11 @@ public class WordRepository {
             params.add(rarity);
         }
 
+        if(word != null){
+            sql.append("AND word = ? ");
+            params.add(word);
+        }
+
         sql.append("ORDER BY RANDOM() LIMIT 1");
 
         Object[] paramArray = params.toArray(new Object[0]);
@@ -39,6 +45,6 @@ public class WordRepository {
         return jdbcClient.sql(sql.toString() + ";")
                         .params(paramArray) 
                         .query(Word.class)
-                        .single();
+                        .optional();
     }
 }

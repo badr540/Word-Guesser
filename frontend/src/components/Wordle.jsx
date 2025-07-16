@@ -1,6 +1,6 @@
 import { useState, useContext, useEffect } from "react";
 import LetterSlot from "./LetterSlot";
-import Key from "./Key";
+import Keyboard from "./Keyboard";
 import GameOver from "./GameOver";
 import Settings from "./Settings";
 import GameStart from "./GameStart";
@@ -16,7 +16,7 @@ function Wordle() {
       const letter = String.fromCharCode(65 + i); // 'A' is 65
       keyMap[letter] = KeyStatus.unused;
     }
-    keyMap["ENTER"] = KeyStatus.unused
+    keyMap["Enter"] = KeyStatus.unused
     keyMap["DEL"] = KeyStatus.unused
 
     const [keyStates, setKeyStates] = useState(keyMap)
@@ -95,14 +95,17 @@ function Wordle() {
         
         if(session.status != "IN_PROGRESS") return;
 
-        for(let i = 0; i < board[guesses].length; i++){
-            let letter = board[guesses][i].letter
-            let idx = letter.toLowerCase().charCodeAt(0) - 'a'.charCodeAt(0)
-            let status = (session.word[i] == "*")? KeyStatus.used :
-                         (session.word[i] == "!")? KeyStatus.inWord : KeyStatus.inCorrectPosition
-            keyStates[letter] = status
-
+        for(let i = 0; i < session.guesses.length; i++){
+            for(let j = 0; j < session.word.length; j++){
+                console.log("inside the loop")
+                let letter = session.guesses[i][j].toUpperCase()
+                if(keyStates[letter] == KeyStatus.inCorrectPosition) continue;
+                let status = (session.results[i][j] == '*') ? KeyStatus.used :
+                (session.results[i][j] == '!') ? KeyStatus.inWord : KeyStatus.inCorrectPosition
+                keyStates[letter] = status
+            }
         }
+
         setKeyStates(keyStates)
 
 
@@ -167,18 +170,6 @@ function Wordle() {
         }</div>
     ));
 
-    const keys = [
-        ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
-        ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-        ["DEL", 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'ENTER']
-    ]
-                    
-    const keyboardElements = keys.map((row) => 
-        <div className="flex justify-center">
-            {row.map(keycode => <Key key={keycode} keyStatus={keyStates[keycode]} callback={() => handleGameInput(keycode)} keyCode = {keycode}/>)}
-        </div>
-    )
-
 
     const gameOverMessage = (Date.now() > session.expiresAt) ? "Game over: time limit reached." : 
         (session.attempts == 0)? "Game over: no guesses remaining." : "Game over: player gave up."
@@ -186,6 +177,7 @@ function Wordle() {
         <div className="flex flex-col justify-center items-center">
             <Popup show={session.status == "WON"} onClose={()=>{}} headerContent={"You Won! 🏆"} includeCloseBtn={false}>
                 <GameOver SettingsComponent={settingsComponent} word={session.word} onNewGame={() => sessionHandler.createSession()}></GameOver>
+                <Confetti></Confetti>
             </Popup>
 
             <Popup show={session.status == "LOST"} onClose={()=>{}} headerContent={gameOverMessage} includeCloseBtn={false}>
@@ -198,9 +190,8 @@ function Wordle() {
                 </GameStart>
             </Popup>
 
-            {isGameWon && <Confetti></Confetti>}
             <div className="p-4">{boardElements}</div>
-            <div className="grid-auto space-x-2 space-y-2 max-w-1/2">{keyboardElements}</div>
+            <Keyboard keyStates={keyStates}/>
         </div>
     )
 }

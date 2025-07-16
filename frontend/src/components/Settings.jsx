@@ -6,13 +6,13 @@ function Settings({settings, changeSettings}) {
       <div className="flex w-fit">
         <button 
         key={-1}
-        className={(settings.wordLength == -1) ? "bg-green-500 text-white" : undefined} 
+        className={(settings.wordLength == -1) ? "bg-green-400 text-white" : undefined} 
         onClick={ () => {changeSettings({...settings, wordLength: -1})}}
         >any</button>
         {Array.from( {length: 7}, (_,index) => 
         <button 
         key={index}
-        className={(settings.wordLength == index+3) && "bg-green-500 text-white"} 
+        className={(settings.wordLength == index+3) && "bg-green-400 text-white"} 
         onClick={ () => {changeSettings({...settings, wordLength: index + 3})}}
         >{index + 3}</button>)}
       </div>
@@ -25,14 +25,14 @@ function Settings({settings, changeSettings}) {
       <div className="flex w-fit">
         <button 
 
-        className={(settings.difficulty == -1) && "bg-green-500 text-white"} 
+        className={(settings.difficulty == -1) && "bg-green-400 text-white"} 
         onClick={ () => {changeSettings({...settings, difficulty: -1})}}
         >any</button>
 
         {Array.from( {length: 4}, (_,index) => 
         <button 
         key={index}
-        className={(settings.difficulty == index) && "bg-green-500 text-white"} 
+        className={(settings.difficulty == index) && "bg-green-400 text-white"} 
         onClick={ () => {changeSettings({...settings, difficulty: index})}}
         >{index}</button>)}
       </div>
