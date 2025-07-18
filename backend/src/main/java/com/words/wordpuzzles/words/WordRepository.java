@@ -18,7 +18,7 @@ public class WordRepository {
         this.jdbcClient = jdbcClient;
     }
 
-    public Optional<Word> read(Integer wordLength, Integer rarity, String word){
+    public Word read(Integer wordLength, Integer rarity){
 
         StringBuilder sql = new StringBuilder("SELECT * FROM words WHERE 1=1 ");
         List<Object> params = new ArrayList<>();
@@ -32,19 +32,22 @@ public class WordRepository {
             sql.append("AND rarity = ? ");
             params.add(rarity);
         }
-
-        if(word != null){
-            sql.append("AND word = ? ");
-            params.add(word);
-        }
-
-        sql.append("ORDER BY RANDOM() LIMIT 1");
-
         Object[] paramArray = params.toArray(new Object[0]);
 
-        return jdbcClient.sql(sql.toString() + ";")
-                        .params(paramArray) 
-                        .query(Word.class)
-                        .optional();
+        return jdbcClient.sql(sql.toString() + "ORDER BY RANDOM() LIMIT 1 ;")
+        .params(paramArray) 
+        .query(Word.class)
+        .single();
+    }
+
+
+    public boolean exists(String word){
+
+        Optional<Word> output =  jdbcClient.sql("SELECT * FROM words WHERE word = ? LIMIT 1 ;")
+        .param(word) 
+        .query(Word.class)
+        .optional();
+
+        return output.isPresent();
     }
 }

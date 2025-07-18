@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Header from './components/Header.jsx'
 import { SessionProvider } from './contexts/SessionContext.jsx';
+import { KeyListenerProvider } from './contexts/KeyListenerContext.jsx';
 import Wordle from './components/Wordle.jsx'
 import Footer from './components/Footer.jsx';
 function App() {
@@ -11,6 +12,7 @@ function App() {
   return (
     <>
       <SessionProvider>
+      <KeyListenerProvider>
         <div className="min-h-screen">
           <Header/>
           <main>
@@ -18,6 +20,7 @@ function App() {
           </main>
           <Footer/>
         </div>
+      </KeyListenerProvider>
       </SessionProvider>
     </>
   )

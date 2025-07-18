@@ -15,16 +15,10 @@ public class WordService {
     }
 
     public Word getRandomWord(Integer wordLength, Integer rarity){
-        Optional<Word> res = wordRepository.read(wordLength, rarity, null);
-        if(res.isPresent()){
-            return res.get();
-        }
-
-        return null;
+        return wordRepository.read(wordLength, rarity);
     }
 
     public boolean isWordReal(String word){
-        Optional<Word> res = wordRepository.read(null, null, word);
-        return res.isPresent();
+        return wordRepository.exists(word);
     }
 }

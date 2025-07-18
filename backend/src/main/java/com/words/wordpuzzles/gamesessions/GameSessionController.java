@@ -4,8 +4,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.view.RedirectView;
+import org.springframework.ui.Model;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -19,23 +21,15 @@ public class GameSessionController {
         this.gameSessionService = gameSessionService;
     }
 
-    @GetMapping("/{uuid}")
-    public Object get(@PathVariable UUID uuid){
-        GameSession session = gameSessionService.getSession(uuid);
-        if(session == null){
-            return new RedirectView("/");
-        }
-
-        return session;
-    }
 
     @PostMapping
-    public GameSession create(
+    public Object create(
         @RequestParam(required = false) Integer userId, 
         @RequestParam(required = false) Integer wordLength, 
-        @RequestParam(required = false) Integer rarity){
+        @RequestParam(required = false) Integer rarity,
+        @RequestParam(required = false) String word){
 
-        return gameSessionService.createSession(userId, wordLength, rarity);
+        return gameSessionService.createSession(userId, wordLength, rarity, word);
     }
     
     @PostMapping("/status")

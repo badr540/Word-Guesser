@@ -13,7 +13,7 @@ function Timer({time, onTimeout}) {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setSeconds(prev => (prev>0) ?  prev - 1 : prev);
+      setSeconds(prev => prev - 1);
       
     }, 1000);
 

@@ -42,8 +42,8 @@ export const SessionProvider = ({ children }) => {
     const minWordLength = 3;
     const maxWordlength = 7;
     const [session, setSession] = useState(sessionSchema)
-
     const [settings, setSettings] = useState(settingsSchema);
+    const [message, setMessage] = useState("")
 
     useEffect(() => {
         const storedSettings = JSON.parse(localStorage.getItem("Settings"))
@@ -54,8 +54,13 @@ export const SessionProvider = ({ children }) => {
             setSettings(storedSettings)
         }
         
+
+        if(window.__SESSION_DATA__ != null && validateShape(window.__SESSION_DATA__, sessionSchema)){
+            setSession(window.__SESSION_DATA__)
+            return;
+        }
+
         const storedSession  = JSON.parse(localStorage.getItem("Session"))
-        console.log("stored Session:", storedSession)
         if(storedSession && validateShape(storedSession, sessionSchema) && storedSession.expiresAt > Date.now()){
             setSession(storedSession)
         }
@@ -68,15 +73,24 @@ export const SessionProvider = ({ children }) => {
             localStorage.setItem("Settings", JSON.stringify(newSetting))
             setSettings(newSetting)
         }
-        else{
-            console.log("new setting is not valid", newSetting) 
+    }
+
+    const handleRecivedSession = (recivedSession) =>{
+        if(! validateShape(recivedSession, sessionSchema)) return; 
+        if(session.guesses.length == recivedSession.guesses.length 
+            && session.status == recivedSession.status){
+            setMessage("Word not Found")
+            return;
         }
+        
+        localStorage.setItem("Session", JSON.stringify(recivedSession))
+        setSession(recivedSession) 
+        setMessage("")
     }
 
     const sessionHandler = {
         
         createSession: () => {
-            console.log("create session")
             const stats = JSON.parse(localStorage.getItem("Statistics"))
             localStorage.setItem("Statistics", JSON.stringify({...stats, gamesPlayed: stats.gamesPlayed+1 }));
             
@@ -94,19 +108,12 @@ export const SessionProvider = ({ children }) => {
             
             fetch("/sessions?wordLength=" + length + "&rarity=" + difficulty, {method:'POST'})
             .then(response => response.json())
-            .then(data =>{ 
-                console.log(data)
-                console.log(validateShape(data, sessionSchema))
-                if(! validateShape(data, sessionSchema)) return; 
-                setSession(data) 
-                localStorage.setItem("Session", JSON.stringify(data))
-            })
+            .then(data => handleRecivedSession(data))
             .catch(error => console.error("Error:", error));
         },
 
         checkStatus: () =>{
             if(session === null || session.sessionId === "") return;
-            console.log("status check")
             fetch("/sessions/status", {
                 method:'POST',
                 headers: {
@@ -115,17 +122,16 @@ export const SessionProvider = ({ children }) => {
                 body: JSON.stringify(session)
             })
             .then(response => response.json())
-            .then(data =>{ 
-                if(! validateShape(data, sessionSchema)) return; 
-                setSession({...data, status: (data.expiresAt < Date.now()) ? "LOST" : "IN_PROGRESS"})
-            })
+            .then(data => handleRecivedSession(data))
             .catch(error => console.error("Error:", error));
         },
         
         makeGuess: (word) =>{
-            console.log("guess made")
             if(session == null) return;
-            console.log(word)
+            if(session.word.length != word.length){
+                setMessage("Word is too small")
+                return ;
+            }
             fetch("/sessions/guess", {
                 method:'POST',
                 headers: {
@@ -134,16 +140,12 @@ export const SessionProvider = ({ children }) => {
                 body: JSON.stringify({...session, word: word})
             })
             .then(response => response.json())
-            .then(data =>{ 
-                if(! validateShape(data, sessionSchema)) return; 
-                setSession(data), localStorage.setItem("Session", JSON.stringify(data))
-            })
+            .then(data => handleRecivedSession(data))
             .catch(error => console.error("Error:", error));
             
         },
 
         giveup: () =>{
-            console.log("gave up")
             if(session == null) return;
             
             fetch("/sessions/giveup", {
@@ -154,10 +156,7 @@ export const SessionProvider = ({ children }) => {
                 body: JSON.stringify(session)
             })
             .then(response => response.json())
-            .then(data => {
-                if(! validateShape(data, sessionSchema)) return; 
-                setSession(data)
-            })
+            .then(data => handleRecivedSession(data))
             .catch(error => console.error("Error:", error));
 
         }
@@ -171,7 +170,7 @@ export const SessionProvider = ({ children }) => {
 
     console.log(session)
     return (
-      <SessionContext.Provider value={[session, sessionHandler, settings, changeSettings]}>
+      <SessionContext.Provider value={[session, sessionHandler, settings, changeSettings, message, setMessage]}>
         {children}
       </SessionContext.Provider>
     );

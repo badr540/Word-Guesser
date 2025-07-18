@@ -19,14 +19,33 @@ public class GameSessionRepository {
     private final JdbcClient jdbcClient;
     private final DataSource dataSource;
 
+
     long minutesInMillis(int minutes){
         return minutes * 60 * 1000;
     }
+
 
     public GameSessionRepository(JdbcClient jdbcClient, DataSource dataSource) {
         this.jdbcClient = jdbcClient;
         this.dataSource = dataSource;
     } 
+
+    public GameSession validateStatus(GameSession session){
+        if(session.expiresAt() < System.currentTimeMillis()){
+            session = new GameSession(
+            session.sessionId(),
+            session.userId(),
+            GameStatus.LOST, 
+            session.guesses(),
+            session.results(),
+            session.word(),
+            session.rarity(), 
+            session.attempts(), 
+            session.expiresAt());
+            return session;
+        }
+        return session;
+    }
     
     public void create(UUID sessionId, Integer userId, String word, Integer rarity){
         long unixMillis = System.currentTimeMillis() + minutesInMillis(2);
@@ -40,19 +59,27 @@ public class GameSessionRepository {
         Optional<GameSession> session = jdbcClient.sql("SELECT * FROM game_sessions WHERE session_id = ? ;")
         .param(sessionId)
         .query(new GameSessionRowMapper())
-        .Optional();
+        .optional();
 
         return session.isPresent();
     }
 
     public GameSession read(UUID sessionId){
-        return jdbcClient.sql("SELECT * FROM game_sessions WHERE session_id = ? ;")
+        GameSession session = jdbcClient.sql("SELECT * FROM game_sessions WHERE session_id = ? ;")
         .param(sessionId)
         .query(new GameSessionRowMapper())
         .single();
+        GameSession validated = validateStatus(session);
+        if(session.status() != validated.status()){
+            update(validated, validated.sessionId());
+        }
+
+        return validated;
     }
 
     public void update(GameSession session, UUID sessionId){
+        session = validateStatus(session);
+        
         try (Connection conn = dataSource.getConnection()) {
             Array gueses = conn.createArrayOf("text", session.guesses().toArray());
             Array results = conn.createArrayOf("text", session.results().toArray());

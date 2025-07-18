@@ -5,11 +5,15 @@ import GameOver from "./GameOver";
 import Settings from "./Settings";
 import GameStart from "./GameStart";
 import SessionContext from "../contexts/SessionContext";
+import KeyListenerContext from "../contexts/KeyListenerContext";
 import Popup from "./popup"
-
+import MessagePopup from "./MessagePopup";
 import Confetti from 'react-confetti'
 
 function Wordle() {
+    const [session, sessionHandler, settings, changeSettings, message, setMessage] = useContext(SessionContext)
+    const [KeyListenerHandler, keydown, setKeyDown] = useContext(KeyListenerContext)
+
     const KeyStatus = {unused:0, used:1, inWord:2, inCorrectPosition: 3}
     const keyMap = {};
     for (let i = 0; i < 26; i++) {
@@ -24,29 +28,27 @@ function Wordle() {
     const maxGuesses = 6;
     const [guesses, setGuesses] = useState(0)
     const [guessLength, setGuessLength] = useState(0)
-    const [session, sessionHandler, settings, changeSettings] = useContext(SessionContext)
     const [board, setBoard] = useState(Array.from({ length: maxGuesses }, (_, index) => 
         Array.from({ length: 4 }, (_, index) => 
             ({letter:"", inWord:false, inCorrectPosition:false, guessed:false}) 
     )))
-
+    const [showMessage, setShowMessage] = useState(false)
     const [isGameOver, setGameOver] = useState(false)
     const [isGameWon, setGameWon] = useState(false)
 
     function handleGameInput(key){
         switch(key){
-            case 'DEL':
+            case 'DELETE':
+            case 'BACKSPACE':
                 if(guessLength > 0){
                     board[guesses][guessLength-1] = {...board[guesses][guessLength-1], letter: ''}
                     setBoard(board)
                     setGuessLength((val) => val-1)          
                 }
                 break;
-            case 'Enter':
-                if(guessLength == session.word.length){
-                    let word = board[guesses].reduce((s, slot, idx) => (s += slot.letter),(""))
-                    sessionHandler.makeGuess(word)
-                }
+            case 'ENTER':
+                let word = board[guesses].reduce((s, slot, idx) => (s += slot.letter),(""))
+                sessionHandler.makeGuess(word)
                 break;
             default:
                 if(guessLength < session.word.length){
@@ -54,39 +56,17 @@ function Wordle() {
                     setBoard(board)
                     setGuessLength((val) => val+1)
                 }
-
         }
+        setKeyDown('')
     }
 
     useEffect(() => {
-        const handleKeyDown = (event) => {
 
-            
-            if(event.key == "Delete" || event.key == "Backspace"){
-              handleGameInput("DEL")
-            }
-            else if(event.key == "Enter"){
-              handleGameInput("Enter")
-            }
-            else if(/^[a-zA-Z]$/.test(event.key)){
-                handleGameInput(event.key.toUpperCase())
-            }
+        if(keydown == "Delete" || keydown == "Backspace" || keydown == "Enter" || /^[a-zA-Z]$/.test(keydown)){
+          handleGameInput(keydown.toUpperCase())
+        }
 
-            const tagName = event.target.tagName.toLowerCase();
-            const isInput = tagName === "input" || tagName === "textarea" || event.target.isContentEditable;
-          
-            if (!isInput) {
-              event.preventDefault(); // Prevent browser going back
-            }
-        
-        };
-        
-        window.addEventListener("keydown", handleKeyDown);
-        
-        return () => {
-          window.removeEventListener("keydown", handleKeyDown);
-        };
-    }, [guessLength, guesses, session, board]);
+    }, [guessLength, guesses, session, board, keydown]);
 
 
     useEffect(() => {    
@@ -97,7 +77,6 @@ function Wordle() {
 
         for(let i = 0; i < session.guesses.length; i++){
             for(let j = 0; j < session.word.length; j++){
-                console.log("inside the loop")
                 let letter = session.guesses[i][j].toUpperCase()
                 if(keyStates[letter] == KeyStatus.inCorrectPosition) continue;
                 let status = (session.results[i][j] == '*') ? KeyStatus.used :
@@ -140,8 +119,7 @@ function Wordle() {
             setGuesses(0)
             setGuessLength(0)
         }
-
-
+        KeyListenerHandler.enableListener();
     }, [session])
 
     useEffect(() =>{
@@ -159,6 +137,10 @@ function Wordle() {
 
     }, [isGameOver])
 
+    useEffect(()=>{
+        setShowMessage(message!="")
+    }, [message])
+
     const settingsComponent = <Settings settings={settings} changeSettings={changeSettings}/>
 
     const boardElements = board.map( (row, rowIdx) => (
@@ -175,18 +157,22 @@ function Wordle() {
         (session.attempts == 0)? "Game over: no guesses remaining." : "Game over: player gave up."
     return (
         <div className="flex flex-col justify-center items-center">
+            {showMessage && <MessagePopup message={message} onClose={() => {setShowMessage(false); setMessage("")}} ></MessagePopup>}
             <Popup show={session.status == "WON"} onClose={()=>{}} headerContent={"You Won! 🏆"} includeCloseBtn={false}>
-                <GameOver SettingsComponent={settingsComponent} word={session.word} onNewGame={() => sessionHandler.createSession()}></GameOver>
+                <GameOver SettingsComponent={settingsComponent} word={session.word} 
+                onNewGame={() => {sessionHandler.createSession();}}></GameOver>
                 <Confetti></Confetti>
             </Popup>
 
             <Popup show={session.status == "LOST"} onClose={()=>{}} headerContent={gameOverMessage} includeCloseBtn={false}>
-                <GameOver SettingsComponent={settingsComponent}word={session.word} onNewGame={() => sessionHandler.createSession()}>
+                <GameOver SettingsComponent={settingsComponent}word={session.word} 
+                onNewGame={() => {sessionHandler.createSession();}}>
                 </GameOver>
             </Popup>
             
             <Popup show={session.status == "STARTING"} onClose={()=>{}} headerContent={"Start"} includeCloseBtn={false}>
-                <GameStart SettingsComponent={settingsComponent} onNewGame={() => sessionHandler.createSession()}>
+                <GameStart SettingsComponent={settingsComponent} 
+                onNewGame={() => {sessionHandler.createSession();}}>
                 </GameStart>
             </Popup>
 

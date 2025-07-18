@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -24,18 +25,38 @@ public class GameSessionService {
     public GameSession getSession(UUID uuid){
         if(gameSessionRepository.exists(uuid)){
             GameSession session = gameSessionRepository.read(uuid);
+            String outputWord = "*".repeat(session.word().length());
             //hide the word here
-            return session;
+            return new GameSession(
+            session.sessionId(), 
+            session.userId(), 
+            session.status(), 
+            session.guesses(),
+            session.results(),
+            outputWord, 
+            session.rarity(), 
+            session.attempts(), 
+            session.expiresAt());
         }
 
         return null;
     }
 
-    public GameSession createSession(Integer userId, Integer wordLength, Integer rarity){
+    public Object createSession(Integer userId, Integer wordLength, Integer rarity, String requestWord){
 
         UUID sessionId = UUID.randomUUID();
+        Word word = new Word(1,"",1);
+        if(requestWord != null){
+            if(!wordService.isWordReal(requestWord)){
+                return Map.of();
+            }
 
-        Word word = wordService.getRandomWord(wordLength, rarity);
+            word = new Word(-1, requestWord, -1);
+        }
+        else{
+            word = wordService.getRandomWord(wordLength, rarity);
+        }
+
         
         if(userId == null){
             userId = -1;
@@ -62,33 +83,21 @@ public class GameSessionService {
     }
 
     public GameSession status(GameSession session){
-
-        String result = session.word();
-        GameStatus status = session.status();
         session = gameSessionRepository.read(session.sessionId());
-        
-        if(session.expiresAt() < System.currentTimeMillis()){
-            status = GameStatus.LOST;
-            result = session.word();
-            gameSessionRepository.update(new GameSession(
-            session.sessionId(),
-            session.userId(),
-            status, 
-            session.guesses(),
-            session.results(),
-            session.word(),
-            session.rarity(), 
-            session.attempts(), 
-            session.expiresAt()), session.sessionId());
+
+        if(session.status() != GameStatus.IN_PROGRESS){
+            return session;
         }
 
+        //hide the word if the game is still in progress
+        String outputWord = "*".repeat(session.word().length());
         session = new GameSession(
         session.sessionId(),
         session.userId(),
-        status, 
+        session.status(), 
         session.guesses(),
         session.results(),
-        result,
+        outputWord,
         session.rarity(), 
         session.attempts(), 
         session.expiresAt());
@@ -148,7 +157,7 @@ public class GameSessionService {
 
             return updatedSession;
         }
-        else if(attempts <= 0 || session.expiresAt() < System.currentTimeMillis()){
+        else if(attempts <= 0){
             GameSession updatedSession = new GameSession(
             session.sessionId(), 
             session.userId(), 
