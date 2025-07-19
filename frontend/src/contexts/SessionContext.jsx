@@ -45,6 +45,10 @@ export const SessionProvider = ({ children }) => {
     const [settings, setSettings] = useState(settingsSchema);
     const [message, setMessage] = useState("")
 
+    const newUrl = `${window.location.origin}/?id=${session.sessionId}`;
+    if(window.location.href != newUrl) window.history.pushState({}, '', newUrl);
+
+    
     useEffect(() => {
         const storedSettings = JSON.parse(localStorage.getItem("Settings"))
         if (!storedSettings || validateShape(storedSettings, settingsSchema)) {
@@ -75,10 +79,11 @@ export const SessionProvider = ({ children }) => {
         }
     }
 
-    const handleRecivedSession = (recivedSession) =>{
+    const handleRecivedSession = (recivedSession, isGuess = false) =>{
         if(! validateShape(recivedSession, sessionSchema)) return; 
         if(session.guesses.length == recivedSession.guesses.length 
-            && session.status == recivedSession.status){
+            && isGuess 
+            && recivedSession.status == "IN_PROGRESS"){
             setMessage("Word not Found")
             return;
         }
@@ -140,7 +145,7 @@ export const SessionProvider = ({ children }) => {
                 body: JSON.stringify({...session, word: word})
             })
             .then(response => response.json())
-            .then(data => handleRecivedSession(data))
+            .then(data => handleRecivedSession(data, true))
             .catch(error => console.error("Error:", error));
             
         },

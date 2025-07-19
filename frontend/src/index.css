@@ -9,16 +9,24 @@ body {
 
 }
 
+/*
 button {
   color: #444b5a;
   border: none;
   border-radius: 8px;
-  padding: 10px 20px;
+  padding: 0.5rem 1rem;
   text-transform: uppercase;
   margin: 5px;
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+*/
+
+button {
+  @apply px-2 py-2 text-xs whitespace-nowrap rounded-sm hover:cursor-pointer uppercase 
+  sm:px-4 sm:py-2 sm:text-base sm:rounded-sm
+  md:px-6 md:py-3 md:rounded-md
 }
 
 button:hover {

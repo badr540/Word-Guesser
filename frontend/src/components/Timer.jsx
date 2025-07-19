@@ -31,7 +31,10 @@ function Timer({time, onTimeout}) {
   }, [time])
 
   return(
-    <div className="h-12 flex text-center items-center uppercase justify-center center-text align-middle bg-gray-200 text-[#444b5a] px-[20px] py-[10px] rounded-[10px] m-[5px]">
+    <div className="flex text-center items-center uppercase justify-center bg-gray-200 whitespace-nowrap text-gray-900
+    px-2 py-2 text-xs  rounded-sm hover:cursor-pointer uppercase 
+    sm:px-4 sm:py-2 sm:text-base sm:rounded-sm
+    md:px-6 md:py-3 md:rounded-md m-2">
       <div className='w-[5ch]'>{formatTime(seconds)}</div>
    </div>
   ) 

@@ -1,6 +1,6 @@
 function HeaderButton(props) {
   return (
-      <button onClick={props.onClick} className="h-12 bg-gray-200  text-gray-900 rounded-sm hover:cursor-pointer hover:bg-gray-400 ">
+      <button onClick={props.onClick} className="  bg-gray-200 whitespace-nowrap  text-gray-900 m-2">
           <div>{props.children}</div>
       </button>
   )

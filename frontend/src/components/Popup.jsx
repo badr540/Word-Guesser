@@ -7,7 +7,6 @@ function Popup({ show, onClose, children, headerContent, includeCloseBtn=true })
       return null
     }
     
-    console.log("disabled")
     KeyListenerHandler.disableListener()
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
@@ -17,7 +16,7 @@ function Popup({ show, onClose, children, headerContent, includeCloseBtn=true })
             <div className="flex-1  ">{headerContent}</div>
             {includeCloseBtn && <button
               onClick={() => {onClose(); KeyListenerHandler.enableListener()}}
-              className="text-gray-600 hover:text-gray-800 text-lg"
+              className="text-gray-600 hover:text-gray-800 text-lg shadow"
               aria-label="Close popup"
             >
               &times;

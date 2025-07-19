@@ -26,7 +26,11 @@ public class GameSessionService {
         if(gameSessionRepository.exists(uuid)){
             GameSession session = gameSessionRepository.read(uuid);
             String outputWord = "*".repeat(session.word().length());
-            //hide the word here
+
+            if(session.status() == GameStatus.LOST){
+                outputWord = session.word();
+            }
+
             return new GameSession(
             session.sessionId(), 
             session.userId(), 

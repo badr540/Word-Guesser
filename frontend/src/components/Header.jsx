@@ -25,23 +25,23 @@ function Header() {
   const onTimeout = (session.status == "IN_PROGRESS") ? () => sessionHandler.checkStatus() : () =>{}
   return (
     <>
-      <header className="flex justify-center items-center p-2 border-b-1"  >
-        <Popup show={showSettings} onClose={()=>setShowSettings(false)} headerContent={"Settings"}>{settingsComponent}</Popup>
-        <Popup show={showStats} onClose={()=>setShowStats(false)} headerContent={"Game Statistics"} ><Stats/></Popup>
-        <Popup show={showCreateGame} onClose={()=>setShowCreateGame(false) } headerContent={"Create game"}><CreateGame/></Popup>
-        <div className="flex justify-evenly w-10/12">
-          <div className="space-x-1 h-full flex justify-evenly"> 
-            <HeaderButton onClick={() => {sessionHandler.giveup()}}>give up</HeaderButton>
-            <Timer time={timeLeft} onTimeout={onTimeout}/>
-          </div>
-          <div className="space-x-1 h-full flex justify-evenly">
-            <HeaderButton onClick={()=> setShowCreateGame(true)}>Create game</HeaderButton>
-            <HeaderButton onClick={()=> setShowStats(true)}>stats</HeaderButton>
-            <HeaderButton onClick={()=> setShowSettings(true)}>settings</HeaderButton>
-          </div>
+      <Popup show={showSettings} onClose={()=>setShowSettings(false)} headerContent={"Settings"}>{settingsComponent}</Popup>
+      <Popup show={showStats} onClose={()=>setShowStats(false)} headerContent={"Game Statistics"} ><Stats/></Popup>
+      <Popup show={showCreateGame} onClose={()=>setShowCreateGame(false) } headerContent={"Create game"}><CreateGame/></Popup>
+
+      <header className="w-full flex flex-wrap justify-evenly border-b-1 m-0"  > 
+        <div className="flex flex-wrap justify-evenly">
+        <HeaderButton onClick={() => {sessionHandler.giveup()}}>give up</HeaderButton>
+        <Timer time={timeLeft} onTimeout={onTimeout}/>
         </div>
 
+        <div className="flex flex-wrap justify-evenly">
+        <HeaderButton onClick={()=> setShowCreateGame(true)}>Create game</HeaderButton>
+        <HeaderButton onClick={()=> setShowStats(true)}>stats</HeaderButton>
+        <HeaderButton onClick={()=> setShowSettings(true)}>settings</HeaderButton>
+        </div>
       </header>
+
     </>
   )
 }

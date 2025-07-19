@@ -15,9 +15,7 @@ function App() {
       <KeyListenerProvider>
         <div className="min-h-screen">
           <Header/>
-          <main>
-            <Wordle />
-          </main>
+          <Wordle/>
           <Footer/>
         </div>
       </KeyListenerProvider>

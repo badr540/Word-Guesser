@@ -6,9 +6,10 @@ import Settings from "./Settings";
 import GameStart from "./GameStart";
 import SessionContext from "../contexts/SessionContext";
 import KeyListenerContext from "../contexts/KeyListenerContext";
-import Popup from "./popup"
+import Popup from "./Popup";
 import MessagePopup from "./MessagePopup";
 import Confetti from 'react-confetti'
+import Header from "./Header";
 
 function Wordle() {
     const [session, sessionHandler, settings, changeSettings, message, setMessage] = useContext(SessionContext)
@@ -20,8 +21,8 @@ function Wordle() {
       const letter = String.fromCharCode(65 + i); // 'A' is 65
       keyMap[letter] = KeyStatus.unused;
     }
-    keyMap["Enter"] = KeyStatus.unused
-    keyMap["DEL"] = KeyStatus.unused
+    keyMap["ENTER"] = KeyStatus.unused
+    keyMap["DELETE"] = KeyStatus.unused
 
     const [keyStates, setKeyStates] = useState(keyMap)
 
@@ -37,6 +38,7 @@ function Wordle() {
     const [isGameWon, setGameWon] = useState(false)
 
     function handleGameInput(key){
+        key = key.toUpperCase();
         switch(key){
             case 'DELETE':
             case 'BACKSPACE':
@@ -90,7 +92,7 @@ function Wordle() {
 
         setBoard(Array.from({ length: maxGuesses }, (_, rowIdx) => {
             if(rowIdx < session.guesses.length){
-                return Array.from({ length: settings.wordLength}, (_, colIdx) => (
+                return Array.from({ length: session.word.length}, (_, colIdx) => (
                 {
                     letter: session.guesses[rowIdx][colIdx]?.toUpperCase(),
                     inWord: session.results[rowIdx][colIdx] == '!', 
@@ -98,7 +100,7 @@ function Wordle() {
                     guessed:true
                 }))
             }
-            return Array.from({ length: settings.wordLength}, (_, colIdx) => ({letter:"", inWord:false, inCorrectPosition:false, guessed:false}))
+            return Array.from({ length: session.word.length}, (_, colIdx) => ({letter:"", inWord:false, inCorrectPosition:false, guessed:false}))
         }))
 
         setGuesses(session.guesses.length)
@@ -156,29 +158,30 @@ function Wordle() {
     const gameOverMessage = (Date.now() > session.expiresAt) ? "Game over: time limit reached." : 
         (session.attempts == 0)? "Game over: no guesses remaining." : "Game over: player gave up."
     return (
-        <div className="flex flex-col justify-center items-center">
-            {showMessage && <MessagePopup message={message} onClose={() => {setShowMessage(false); setMessage("")}} ></MessagePopup>}
-            <Popup show={session.status == "WON"} onClose={()=>{}} headerContent={"You Won! 🏆"} includeCloseBtn={false}>
-                <GameOver SettingsComponent={settingsComponent} word={session.word} 
-                onNewGame={() => {sessionHandler.createSession();}}></GameOver>
-                <Confetti></Confetti>
-            </Popup>
-
-            <Popup show={session.status == "LOST"} onClose={()=>{}} headerContent={gameOverMessage} includeCloseBtn={false}>
-                <GameOver SettingsComponent={settingsComponent}word={session.word} 
-                onNewGame={() => {sessionHandler.createSession();}}>
-                </GameOver>
-            </Popup>
-            
-            <Popup show={session.status == "STARTING"} onClose={()=>{}} headerContent={"Start"} includeCloseBtn={false}>
-                <GameStart SettingsComponent={settingsComponent} 
-                onNewGame={() => {sessionHandler.createSession();}}>
-                </GameStart>
-            </Popup>
-
+        <>
+        <div className="flex flex-col justify-center items-center min-w-5 w-full">
             <div className="p-4">{boardElements}</div>
-            <Keyboard keyStates={keyStates}/>
+            <Keyboard keyStates={keyStates} callback={(keycode) => handleGameInput(keycode)}/>
         </div>
+
+        {showMessage && <MessagePopup message={message} onClose={() => {setShowMessage(false); setMessage("")}} ></MessagePopup>}
+        <Popup show={session.status == "WON"} onClose={()=>{}} headerContent={"You Won! 🏆"} includeCloseBtn={false}>
+            <GameOver SettingsComponent={settingsComponent} word={session.word} 
+            onNewGame={() => {sessionHandler.createSession();}}></GameOver>
+        </Popup>
+        {session.status == "WON" && <Confetti></Confetti>}
+        <Popup show={session.status == "LOST"} onClose={()=>{}} headerContent={gameOverMessage} includeCloseBtn={false}>
+            <GameOver SettingsComponent={settingsComponent}word={session.word} 
+            onNewGame={() => {sessionHandler.createSession();}}>
+            </GameOver>
+        </Popup>
+        
+        <Popup show={session.status == "STARTING"} onClose={()=>{}} headerContent={"Start"} includeCloseBtn={false}>
+            <GameStart SettingsComponent={settingsComponent} 
+            onNewGame={() => {sessionHandler.createSession();}}>
+            </GameStart>
+        </Popup>
+        </>
     )
 }
 

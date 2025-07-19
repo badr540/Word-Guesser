@@ -15,7 +15,7 @@ function LetterSlot(props) {
     }
 
     return (
-          <div className={`  ${animationClass} bg-gray-100 text-gray-950 rounded-sm border-2 border-gray-400 h-15 min-h-10 aspect-square flex items-center justify-center`}>
+          <div className={`  ${animationClass} bg-gray-100 text-gray-950 rounded-sm border-2 border-gray-400 h-10 sm:h-15 aspect-square flex items-center justify-center`}>
               {props.children}
           </div>
     )
