@@ -4,6 +4,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.view.RedirectView;
+
+import main.java.com.words.wordpuzzles.gamesessions.SessionNotFoundException;
+
 import org.springframework.ui.Model;
 
 import java.util.List;
@@ -21,6 +24,15 @@ public class GameSessionController {
         this.gameSessionService = gameSessionService;
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<GameSession> getSession(@PathVariable UUID id) {
+        try {
+            GameSession session = gameSessionService.getSessionById(id);
+            return ResponseEntity.ok(session);
+        } catch (Exception ex) {
+            return ResponseEntity.notFound().build();
+        } 
+    }
 
     @PostMapping
     public Object create(
@@ -31,12 +43,7 @@ public class GameSessionController {
 
         return gameSessionService.createSession(userId, wordLength, rarity, word);
     }
-    
-    @PostMapping("/status")
-    public GameSession sessionStatus(@RequestBody GameSession userSession){
-        return gameSessionService.status(userSession);
-    }
-    
+
     @PostMapping("/guess")
     public GameSession guess(@RequestBody GameSession userSession){
         return gameSessionService.guess(userSession);

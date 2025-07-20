@@ -1,6 +1,9 @@
 package com.words.wordpuzzles.gamesessions;
 
 import com.words.wordpuzzles.words.WordService;
+
+import main.java.com.words.wordpuzzles.gamesessions.GameStatus;
+
 import com.words.wordpuzzles.words.Word;
 
 import org.springframework.stereotype.Service;
@@ -13,6 +16,7 @@ import java.util.UUID;
 
 @Service
 public class GameSessionService {
+    private static final int ANONYMOUS_USER_ID = -1;
 
     private final GameSessionRepository gameSessionRepository;
     private final WordService wordService;
@@ -22,28 +26,12 @@ public class GameSessionService {
         this.wordService = wordService;        
     }
 
-    public GameSession getSession(UUID uuid){
-        if(gameSessionRepository.exists(uuid)){
-            GameSession session = gameSessionRepository.read(uuid);
-            String outputWord = "*".repeat(session.word().length());
-
-            if(session.status() == GameStatus.LOST){
-                outputWord = session.word();
-            }
-
-            return new GameSession(
-            session.sessionId(), 
-            session.userId(), 
-            session.status(), 
-            session.guesses(),
-            session.results(),
-            outputWord, 
-            session.rarity(), 
-            session.attempts(), 
-            session.expiresAt());
+    public GameSession findSessionById(UUID sessionId){
+        if (!gameSessionRepository.existsById(sessionId)) {
+            return null;  // Or throw SessionNotFoundException
         }
-
-        return null;
+        GameSession session = gameSessionRepository.findById(sessionId);
+        return maskWordIfInProgress(session);
     }
 
     public Object createSession(Integer userId, Integer wordLength, Integer rarity, String requestWord){
@@ -63,171 +51,97 @@ public class GameSessionService {
 
         
         if(userId == null){
-            userId = -1;
+            userId = ANONYMOUS_USER_ID;
         }
 
         gameSessionRepository.create(sessionId, userId, word.word(), word.rarity());
-
-        GameSession session = gameSessionRepository.read(sessionId);
-
-        String outputWord = "*".repeat(session.word().length());
-
-        GameSession outputSession = new GameSession(
-        sessionId, 
-        userId, 
-        session.status(), 
-        session.guesses(),
-        session.results(),
-        outputWord, 
-        session.rarity(), 
-        session.attempts(), 
-        session.expiresAt());
-
-        return outputSession;
-    }
-
-    public GameSession status(GameSession session){
-        session = gameSessionRepository.read(session.sessionId());
-
-        if(session.status() != GameStatus.IN_PROGRESS){
-            return session;
-        }
-
-        //hide the word if the game is still in progress
-        String outputWord = "*".repeat(session.word().length());
-        session = new GameSession(
-        session.sessionId(),
-        session.userId(),
-        session.status(), 
-        session.guesses(),
-        session.results(),
-        outputWord,
-        session.rarity(), 
-        session.attempts(), 
-        session.expiresAt());
-        
-        return session;
+        GameSession session = gameSessionRepository.findById(sessionId);
+        return maskWordIfInProgress(session);
     }
 
     public GameSession guess(GameSession session){
+        if (session == null || session.word() == null) {
+            throw new IllegalArgumentException("Invalid session");
+        }
+
         String guessedWord = session.word().toLowerCase();
-        
-        if(!wordService.isWordReal(guessedWord)){
+        session = gameSessionRepository.findById(session.sessionId());
+
+        if(session.status() != GameStatus.IN_PROGRESS || !wordService.isWordReal(guessedWord)){
             return session;
         }
 
-        
-        session = gameSessionRepository.read(session.sessionId());
         String realWord = session.word().toLowerCase();
-        int attempts  = session.attempts()-1;
-        if (session.status() != GameStatus.IN_PROGRESS){
-            return session;
-        }
-
-        String guessOutput = "";   
-        for(int i = 0; i < realWord.length(); i ++){
-            if(i < guessedWord.length() && 
-                guessedWord.charAt(i) == realWord.charAt(i)){
-
-                guessOutput += guessedWord.charAt(i);
-            }
-            else if(realWord.indexOf(guessedWord.charAt(i)) != -1){
-                guessOutput += '!';
-            }
-            else{
-                guessOutput += '*';
-            }
-        }
-
+        int remainingAttempts   = session.attempts()-1;
+        String feedback = generateFeedback(guessedWord, realWord);   
+        GameStatus newStatus = determineNewStatus(guessedWord, realWord, remainingAttempts);
         List<String> guesses = new ArrayList<>(session.guesses());
-        List<String> results = new ArrayList<>(session.results());
         guesses.add(guessedWord);
-        results.add(guessOutput);
+        List<String> results = new ArrayList<>(session.results());
+        results.add(feedback);
         
-        if(guessedWord.equals(realWord)){
-            //whatever needs to be handled here like adding a win to a players record
-            GameSession updatedSession = new GameSession(
-            session.sessionId(), 
-            session.userId(), 
-            GameStatus.WON, 
-            guesses,
-            results,
-            realWord, 
-            session.rarity(), 
-            attempts, 
-            session.expiresAt());
-            
-            gameSessionRepository.update(updatedSession, session.sessionId());
-
-            return updatedSession;
-        }
-        else if(attempts <= 0){
-            GameSession updatedSession = new GameSession(
-            session.sessionId(), 
-            session.userId(), 
-            GameStatus.LOST, 
-            session.guesses(),
-            session.results(),
-            realWord, 
-            session.rarity(), 
-            attempts, 
-            session.expiresAt());
-           
-            gameSessionRepository.update(updatedSession, session.sessionId());
-            
-            return updatedSession;
-        }
-
-
-        //figure out a cleaner way to do this 
         GameSession updatedSession = new GameSession(
-        session.sessionId(), 
-        session.userId(), 
-        GameStatus.IN_PROGRESS, 
-        guesses,
-        results,
-        session.word(), 
-        session.rarity(), 
-        attempts, 
-        session.expiresAt());
-        
+        session.sessionId(), session.userId(), newStatus, 
+        guesses, results, session.word(), 
+        session.rarity(), remainingAttempts, session.expiresAt());
+
         gameSessionRepository.update(updatedSession, session.sessionId());
-
-        GameSession returnedSession = new GameSession(
-        session.sessionId(), 
-        session.userId(), 
-        GameStatus.IN_PROGRESS, 
-        guesses,
-        results,
-        guessOutput, 
-        session.rarity(), 
-        attempts, 
-        session.expiresAt());
-
-        return returnedSession;
+        return maskWordIfInProgress(updatedSession);
     }
-
-
 
     public GameSession giveup(GameSession session){
-        
-        session = gameSessionRepository.read(session.sessionId());
-
-        GameSession updatedSession = new GameSession(
-        session.sessionId(), 
-        session.userId(), 
-        GameStatus.LOST, 
-        session.guesses(),
-        session.results(),
-        session.word(), 
-        session.rarity(), 
-        session.attempts(), 
-        session.expiresAt());
-        
-        gameSessionRepository.update(updatedSession, session.sessionId());
-
-        return updatedSession;
+        session = gameSessionRepository.findById(session.sessionId());
+        session = gameSessionRepository.markAsLost(session);
+        gameSessionRepository.update(session, session.sessionId());
+        return session;
     }
 
+    private GameSession maskWordIfInProgress(GameSession session) {
+        if (session.status() == GameStatus.IN_PROGRESS) {
+            String maskedWord = "*".repeat(session.word().length());
+            return new GameSession(
+                session.sessionId(), 
+                session.userId(), 
+                session.status(),
+                session.guesses(),
+                session.results(),
+                maskedWord,  // Hide word
+                session.rarity(),
+                session.attempts(),
+                session.expiresAt()
+            );
+        }
+        return session;
+    }
+    
+    private GameStatus determineNewStatus(String guessedWord, String targetWord, int remainingAttempts) {
+        if (guessedWord.equals(targetWord)) {
+            return GameStatus.WON;
+        }
+        if (remainingAttempts <= 0) {
+            return GameStatus.LOST;
+        }
+        return GameStatus.IN_PROGRESS;
+    }
 
+    private String generateFeedback(String guessedWord, String targetWord) {
+        StringBuilder feedback = new StringBuilder(targetWord.length());
+        for (int i = 0; i < targetWord.length(); i++) {
+            char guessedChar = (i < guessedWord.length()) ? guessedWord.charAt(i) : ' ';
+            char targetChar = targetWord.charAt(i);
+            
+            if (guessedChar == targetChar) {
+                feedback.append(guessedChar);  // Correct letter and position
+            } else if (targetWord.indexOf(guessedChar) != -1) {
+                feedback.append('!');  // Correct letter, wrong position
+            } else {
+                feedback.append('*');  // Letter not in word
+            }
+        }
+        return feedback.toString();
+    }
+
+    private String maskWord(String word) {
+        return "*".repeat(word.length());
+    }
 }
