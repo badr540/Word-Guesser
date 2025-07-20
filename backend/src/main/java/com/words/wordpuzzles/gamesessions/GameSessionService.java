@@ -26,37 +26,21 @@ public class GameSessionService {
         this.wordService = wordService;        
     }
 
-    public GameSession findSessionById(UUID sessionId){
-        if (!gameSessionRepository.existsById(sessionId)) {
-            return null;  // Or throw SessionNotFoundException
+    public GameSession createSession(Integer userId, Integer wordLength, Integer rarity, String requestWord) {
+        if (requestWord != null && !wordService.isWordReal(requestWord)) {
+            throw new InvalidWordException(requestWord);
         }
-        GameSession session = gameSessionRepository.findById(sessionId);
-        return maskWordIfInProgress(session);
-    }
 
-    public Object createSession(Integer userId, Integer wordLength, Integer rarity, String requestWord){
+        Word word = requestWord != null 
+            ? new Word(-1, requestWord, -1) 
+            : wordService.getRandomWord(wordLength, rarity);
+
+        Integer effectiveUserId = userId != null ? userId : ANONYMOUS_USER_ID;
 
         UUID sessionId = UUID.randomUUID();
-        Word word = new Word(1,"",1);
-        if(requestWord != null){
-            if(!wordService.isWordReal(requestWord)){
-                return Map.of();
-            }
-
-            word = new Word(-1, requestWord, -1);
-        }
-        else{
-            word = wordService.getRandomWord(wordLength, rarity);
-        }
-
+        gameSessionRepository.create(sessionId, effectiveUserId, word.word(), word.rarity());
         
-        if(userId == null){
-            userId = ANONYMOUS_USER_ID;
-        }
-
-        gameSessionRepository.create(sessionId, userId, word.word(), word.rarity());
-        GameSession session = gameSessionRepository.findById(sessionId);
-        return maskWordIfInProgress(session);
+        return gameSessionRepository.findById(sessionId);
     }
 
     public GameSession guess(GameSession session){

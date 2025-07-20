@@ -9,6 +9,7 @@ import main.java.com.words.wordpuzzles.gamesessions.SessionNotFoundException;
 
 import org.springframework.ui.Model;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -25,32 +26,52 @@ public class GameSessionController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<GameSession> getSession(@PathVariable UUID id) {
+    public ResponseEntity<?> getSession(@PathVariable UUID id) {
         try {
             GameSession session = gameSessionService.getSessionById(id);
             return ResponseEntity.ok(session);
-        } catch (Exception ex) {
+        } catch (SessionNotFoundException ex) {
             return ResponseEntity.notFound().build();
         } 
     }
 
     @PostMapping
-    public Object create(
-        @RequestParam(required = false) Integer userId, 
-        @RequestParam(required = false) Integer wordLength, 
+    public ResponseEntity<?> createSession(
+        @RequestParam(required = false) Integer userId,
+        @RequestParam(required = false) Integer wordLength,
         @RequestParam(required = false) Integer rarity,
         @RequestParam(required = false) String word){
-
-        return gameSessionService.createSession(userId, wordLength, rarity, word);
+            
+        try {
+            GameSession session = gameSessionService.createSession(userId, wordLength, rarity, word);
+            return ResponseEntity.created(URI.create("/?sessionId=" + session.getSessionId()))
+            .body(session);
+        } catch (InvalidWordException e) {
+            return ResponseEntity.badRequest()
+            .body(Map.of(
+                "error", "INVALID_WORD",
+                "message", e.getMessage()
+            ));
+        }
     }
 
     @PostMapping("/guess")
-    public GameSession guess(@RequestBody GameSession userSession){
-        return gameSessionService.guess(userSession);
+    public ResponseEntity<?> guess(@RequestBody GameSession userSession){
+        try {
+            GameSession session = gameSessionService.guess(userSession);
+            return ResponseEntity.ok(session);
+        } catch (Exception ex) {
+            return ResponseEntity.notFound().build();
+        } 
     }
     
     @PostMapping("/giveup")
-    public GameSession giveup(@RequestBody GameSession userSession){
-        return gameSessionService.giveup(userSession);
+    public ResponseEntity<?> giveup(@RequestBody GameSession userSession){
+        try {
+            GameSession session = gameSessionService.guess(userSession);
+            return ResponseEntity.ok(session);
+        } catch (Exception ex) {
+            return ResponseEntity.notFound().build();
+        } 
     }
 }

@@ -28,10 +28,10 @@ public class HomeController {
 
     @GetMapping("/")
     @ResponseBody
-    public String index(@RequestParam(required = false) UUID id) throws IOException {
-        System.out.println(id);
+    public String index(@RequestParam(required = false) UUID sessionId) throws IOException {
+        System.out.println(sessionId);
     
-        Object session = (id != null) ? gameSessionService.getSession(id) : Map.of();
+        Object session = (sessionId != null) ? gameSessionService.getSession(sessionId) : Map.of();
     
         Path path = new ClassPathResource("static/index.html").getFile().toPath();
         String content = Files.readString(path);
