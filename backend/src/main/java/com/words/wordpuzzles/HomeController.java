@@ -2,10 +2,13 @@ package com.words.wordpuzzles;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
 
 import com.words.wordpuzzles.gamesessions.GameSessionService;
+import com.words.wordpuzzles.gamesessions.SessionNotFoundException;
+
 import org.springframework.stereotype.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.ui.Model;
@@ -27,18 +30,18 @@ public class HomeController {
     }
 
     @GetMapping("/")
-    @ResponseBody
-    public String index(@RequestParam(required = false) UUID sessionId) throws IOException {
-        System.out.println(sessionId);
-    
-        Object session = (sessionId != null) ? gameSessionService.getSession(sessionId) : Map.of();
-    
-        Path path = new ClassPathResource("static/index.html").getFile().toPath();
-        String content = Files.readString(path);
-        ObjectMapper mapper = new ObjectMapper();
-        String json = mapper.writeValueAsString(session);
-        String modifiedHtml = content.replace("__INJECTED_SESSION__", json);
-    
-        return modifiedHtml;
+    public String index(@RequestParam(required = false) UUID sessionId, Model model){
+        try {
+            model.addAttribute("session",
+                sessionId != null 
+                    ? gameSessionService.getSession(sessionId)
+                    : Collections.emptyMap()
+            );
+        } catch (SessionNotFoundException e) {
+            model.addAttribute("session", Collections.emptyMap());
+            
+        }
+
+        return "index";
     }
 }

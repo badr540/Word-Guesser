@@ -18,7 +18,7 @@ public class WordRepository {
         this.jdbcClient = jdbcClient;
     }
 
-    public Word read(Integer wordLength, Integer rarity){
+    public Word getRandomWord(Integer wordLength, Integer rarity){
 
         StringBuilder sql = new StringBuilder("SELECT * FROM words WHERE 1=1 ");
         List<Object> params = new ArrayList<>();
@@ -41,7 +41,7 @@ public class WordRepository {
     }
 
 
-    public boolean exists(String word){
+    public boolean isWordReal(String word){
 
         Optional<Word> output =  jdbcClient.sql("SELECT * FROM words WHERE word = ? LIMIT 1 ;")
         .param(word) 

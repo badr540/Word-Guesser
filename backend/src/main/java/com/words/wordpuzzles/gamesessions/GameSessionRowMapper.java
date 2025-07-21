@@ -16,7 +16,6 @@ public class GameSessionRowMapper implements RowMapper<GameSession> {
     @Override
     public GameSession mapRow(ResultSet rs, int rowNum) throws SQLException{
         UUID sessionId = rs.getObject("session_id", UUID.class);
-        Integer userId = rs.getInt("user_id");
         GameStatus status = GameStatus.valueOf(rs.getString("status"));
 
         Array guessesArray = rs.getArray("guesses");
@@ -30,14 +29,13 @@ public class GameSessionRowMapper implements RowMapper<GameSession> {
         Long expiresAt = rs.getLong("expires_at");
 
         return new GameSession(sessionId, 
-                                userId, 
-                                status, 
-                                guesses,
-                                results,
-                                word,
-                                rarity,
-                                attempts,
-                                expiresAt);
+            status, 
+            guesses,
+            results,
+            word,
+            rarity,
+            attempts,
+            expiresAt);
     }
     
 }

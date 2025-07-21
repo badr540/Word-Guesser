@@ -4,7 +4,6 @@ import java.util.UUID;
 
 public record GameSession(
     UUID sessionId,
-    Integer userId,
     GameStatus status,
     List<String> guesses,
     List<String> results,

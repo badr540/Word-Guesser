@@ -5,10 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.view.RedirectView;
 
-import main.java.com.words.wordpuzzles.gamesessions.SessionNotFoundException;
-
-import org.springframework.ui.Model;
-
+import org.springframework.http.ResponseEntity;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
@@ -25,26 +22,30 @@ public class GameSessionController {
         this.gameSessionService = gameSessionService;
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getSession(@PathVariable UUID id) {
+    @GetMapping("/{sessionId}")
+    public ResponseEntity<Object> getSession(@PathVariable UUID sessionId) {
         try {
-            GameSession session = gameSessionService.getSessionById(id);
+            GameSession session = gameSessionService.getSession(sessionId);
             return ResponseEntity.ok(session);
-        } catch (SessionNotFoundException ex) {
-            return ResponseEntity.notFound().build();
+        } catch (SessionNotFoundException e) {
+            return ResponseEntity
+            .status(HttpStatus.NOT_FOUND)
+            .body(Map.of(
+                "error", "SESSION_NOT_FOUND",
+                "message", e.getMessage()
+            ));
         } 
     }
 
     @PostMapping
-    public ResponseEntity<?> createSession(
-        @RequestParam(required = false) Integer userId,
+    public ResponseEntity<Object> createSession(
         @RequestParam(required = false) Integer wordLength,
         @RequestParam(required = false) Integer rarity,
         @RequestParam(required = false) String word){
             
         try {
-            GameSession session = gameSessionService.createSession(userId, wordLength, rarity, word);
-            return ResponseEntity.created(URI.create("/?sessionId=" + session.getSessionId()))
+            GameSession session = gameSessionService.createSession(wordLength, rarity, word);
+            return ResponseEntity.created(URI.create("/?sessionId=" + session.sessionId()))
             .body(session);
         } catch (InvalidWordException e) {
             return ResponseEntity.badRequest()
@@ -52,26 +53,43 @@ public class GameSessionController {
                 "error", "INVALID_WORD",
                 "message", e.getMessage()
             ));
+        }catch (Exception e) {
+            System.err.println("ERROR: " + e.getMessage());
+            return ResponseEntity.internalServerError()
+            .body(Map.of(
+                "error", "SERVER_ERROR",
+                "message", "Try again later"  
+            ));
         }
     }
 
     @PostMapping("/guess")
-    public ResponseEntity<?> guess(@RequestBody GameSession userSession){
+    public ResponseEntity<Object> guess(@RequestBody GameSession userSession){
         try {
             GameSession session = gameSessionService.guess(userSession);
             return ResponseEntity.ok(session);
-        } catch (Exception ex) {
-            return ResponseEntity.notFound().build();
+        } catch (SessionNotFoundException e) {
+            return ResponseEntity
+            .status(HttpStatus.NOT_FOUND)
+            .body(Map.of(
+                "error", "SESSION_NOT_FOUND",
+                "message", e.getMessage()
+            ));
         } 
     }
     
-    @PostMapping("/giveup")
-    public ResponseEntity<?> giveup(@RequestBody GameSession userSession){
+    @PostMapping("/{sessionId}/giveup")
+    public ResponseEntity<Object> giveup(@PathVariable UUID sessionId){
         try {
-            GameSession session = gameSessionService.guess(userSession);
+            GameSession session = gameSessionService.giveup(sessionId);
             return ResponseEntity.ok(session);
-        } catch (Exception ex) {
-            return ResponseEntity.notFound().build();
+        } catch (SessionNotFoundException e) {
+            return ResponseEntity
+            .status(HttpStatus.NOT_FOUND)
+            .body(Map.of(
+                "error", "SESSION_NOT_FOUND",
+                "message", e.getMessage()
+            ));
         } 
     }
 }

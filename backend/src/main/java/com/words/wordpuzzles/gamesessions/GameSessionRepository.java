@@ -7,10 +7,7 @@ import java.sql.SQLException;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
-
-import main.java.com.words.wordpuzzles.gamesessions.GameSessionRowMapper;
-import main.java.com.words.wordpuzzles.gamesessions.GameStatus;
-import main.java.com.words.wordpuzzles.gamesessions.SessionNotFoundException;
+import org.springframework.dao.DataAccessResourceFailureException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,11 +29,11 @@ public class GameSessionRepository {
         this.dataSource = dataSource;
     } 
     
-    public void create(UUID sessionId, Integer userId, String word, Integer rarity){
+    public void create(UUID sessionId, String word, Integer rarity){
         long expirationTimeMillis = System.currentTimeMillis() + convertMinutesToMillis(DEFAULT_GAME_DURATION_MINUTES);
 
-        jdbcClient.sql("INSERT INTO game_sessions (session_id, user_id, word, rarity, expires_at) VALUES(?,?,?,?,?);")
-        .params(List.of(sessionId, userId, word, rarity, expirationTimeMillis))
+        jdbcClient.sql("INSERT INTO game_sessions (session_id, word, rarity, expires_at) VALUES(?,?,?,?);")
+        .params(List.of(sessionId, word, rarity, expirationTimeMillis))
         .update();      
     }
 
@@ -53,7 +50,7 @@ public class GameSessionRepository {
             }
 
             return session;
-        } catch (EmptyResultDataAccessException ex) {
+        } catch (Exception e) {
             throw new SessionNotFoundException(sessionId);
         }
     }
@@ -72,13 +69,13 @@ public class GameSessionRepository {
             jdbcClient
             .sql("""
                 UPDATE game_sessions 
-                SET user_id = ?, status = ? ::game_status, 
+                SET status = ? ::game_status, 
                 guesses = ?, results = ?, word = ?, 
                 rarity = ?, attempts = ?, expires_at = ? 
                 WHERE session_id = ? ; 
             """)
             .params(List.of(
-                session.userId(), session.status().toString(), 
+                session.status().toString(), 
                 guesses, results, session.word(), 
                 session.rarity(), session.attempts(), 
                 session.expiresAt(), sessionId)
@@ -86,7 +83,7 @@ public class GameSessionRepository {
             .update();
 
         } catch (SQLException e) {
-            throw new DataAccessException("Failed to update session: " + sessionId, e);
+            throw new DataAccessResourceFailureException("Failed to update session: " + sessionId, e);
         }
     }
 
@@ -97,8 +94,8 @@ public class GameSessionRepository {
     }
 
     public GameSession markAsLost(GameSession session) {
-        return new GameSession(session.sessionId(),
-            session.userId(),
+        return new GameSession(
+            session.sessionId(),
             GameStatus.LOST, 
             session.guesses(),
             session.results(),

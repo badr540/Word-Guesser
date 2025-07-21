@@ -1,9 +1,6 @@
 package com.words.wordpuzzles.gamesessions;
 
-import com.words.wordpuzzles.words.WordService;
-
-import main.java.com.words.wordpuzzles.gamesessions.GameStatus;
-
+import com.words.wordpuzzles.words.WordRepository;
 import com.words.wordpuzzles.words.Word;
 
 import org.springframework.stereotype.Service;
@@ -16,29 +13,32 @@ import java.util.UUID;
 
 @Service
 public class GameSessionService {
-    private static final int ANONYMOUS_USER_ID = -1;
 
     private final GameSessionRepository gameSessionRepository;
-    private final WordService wordService;
+    private final WordRepository wordRepository;
 
-    GameSessionService(GameSessionRepository gameSessionRepository, WordService wordService) {
+    GameSessionService(GameSessionRepository gameSessionRepository, WordRepository wordRepository) {
         this.gameSessionRepository = gameSessionRepository;
-        this.wordService = wordService;        
+        this.wordRepository = wordRepository;        
     }
 
-    public GameSession createSession(Integer userId, Integer wordLength, Integer rarity, String requestWord) {
-        if (requestWord != null && !wordService.isWordReal(requestWord)) {
+    public GameSession getSession(UUID sessionId){
+        GameSession session = gameSessionRepository.findById(sessionId);
+        return maskWordIfInProgress(session);
+    }
+
+    public GameSession createSession(Integer wordLength, Integer rarity, String requestWord) {
+        if (requestWord != null && !wordRepository.isWordReal(requestWord)) {
             throw new InvalidWordException(requestWord);
         }
 
         Word word = requestWord != null 
             ? new Word(-1, requestWord, -1) 
-            : wordService.getRandomWord(wordLength, rarity);
+            : wordRepository.getRandomWord(wordLength, rarity);
 
-        Integer effectiveUserId = userId != null ? userId : ANONYMOUS_USER_ID;
 
         UUID sessionId = UUID.randomUUID();
-        gameSessionRepository.create(sessionId, effectiveUserId, word.word(), word.rarity());
+        gameSessionRepository.create(sessionId, word.word(), word.rarity());
         
         return gameSessionRepository.findById(sessionId);
     }
@@ -51,7 +51,7 @@ public class GameSessionService {
         String guessedWord = session.word().toLowerCase();
         session = gameSessionRepository.findById(session.sessionId());
 
-        if(session.status() != GameStatus.IN_PROGRESS || !wordService.isWordReal(guessedWord)){
+        if(session.status() != GameStatus.IN_PROGRESS || !wordRepository.isWordReal(guessedWord)){
             return session;
         }
 
@@ -65,7 +65,7 @@ public class GameSessionService {
         results.add(feedback);
         
         GameSession updatedSession = new GameSession(
-        session.sessionId(), session.userId(), newStatus, 
+        session.sessionId(), newStatus, 
         guesses, results, session.word(), 
         session.rarity(), remainingAttempts, session.expiresAt());
 
@@ -73,19 +73,18 @@ public class GameSessionService {
         return maskWordIfInProgress(updatedSession);
     }
 
-    public GameSession giveup(GameSession session){
-        session = gameSessionRepository.findById(session.sessionId());
+    public GameSession giveup(UUID sessionId){
+        GameSession session = gameSessionRepository.findById(sessionId);
         session = gameSessionRepository.markAsLost(session);
-        gameSessionRepository.update(session, session.sessionId());
+        gameSessionRepository.update(session, sessionId);
         return session;
     }
 
     private GameSession maskWordIfInProgress(GameSession session) {
         if (session.status() == GameStatus.IN_PROGRESS) {
-            String maskedWord = "*".repeat(session.word().length());
+            String maskedWord = maskWord(session.word());
             return new GameSession(
                 session.sessionId(), 
-                session.userId(), 
                 session.status(),
                 session.guesses(),
                 session.results(),
