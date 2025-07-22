@@ -24,8 +24,8 @@ button {
 */
 
 button {
-  @apply px-2 py-2 text-xs whitespace-nowrap rounded-sm hover:cursor-pointer uppercase 
-  sm:px-4 sm:py-2 sm:text-base sm:rounded-sm
+  @apply px-2.5 py-3 text-xs whitespace-nowrap rounded-sm hover:cursor-pointer uppercase 
+  sm:px-5 sm:py-3 sm:text-base sm:rounded-sm
   md:px-6 md:py-3 md:rounded-md
 }
 

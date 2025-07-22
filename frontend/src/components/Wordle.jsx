@@ -9,7 +9,6 @@ import KeyListenerContext from "../contexts/KeyListenerContext";
 import Popup from "./Popup";
 import MessagePopup from "./MessagePopup";
 import Confetti from 'react-confetti'
-import Header from "./Header";
 
 function Wordle() {
     const [session, sessionHandler, settings, changeSettings, message, setMessage] = useContext(SessionContext)
@@ -159,7 +158,7 @@ function Wordle() {
         (session.attempts == 0)? "Game over: no guesses remaining." : "Game over: player gave up."
     return (
         <>
-        <div className="flex flex-col justify-center items-center min-w-5 w-full">
+        <div className="flex flex-col flex-grow justify-center items-center min-w-5 w-full">
             <div className="p-4">{boardElements}</div>
             <Keyboard keyStates={keyStates} callback={(keycode) => handleGameInput(keycode)}/>
         </div>

@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "postbuild": "xcopy /E /Y /I dist ..\\backend\\src\\main\\resources\\static",
+    "postbuild":"xcopy /E /Y /I dist\\index.html ..\\backend\\src\\main\\resources\\templates\\ && xcopy /E /Y /I dist\\assets ..\\backend\\src\\main\\resources\\static\\assets\\",
     "lint": "eslint .",
     "preview": "vite preview"
   },

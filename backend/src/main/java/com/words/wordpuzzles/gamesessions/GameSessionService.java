@@ -40,7 +40,7 @@ public class GameSessionService {
         UUID sessionId = UUID.randomUUID();
         gameSessionRepository.create(sessionId, word.word(), word.rarity());
         
-        return gameSessionRepository.findById(sessionId);
+        return maskWordIfInProgress(gameSessionRepository.findById(sessionId));
     }
 
     public GameSession guess(GameSession session){
@@ -52,7 +52,7 @@ public class GameSessionService {
         session = gameSessionRepository.findById(session.sessionId());
 
         if(session.status() != GameStatus.IN_PROGRESS || !wordRepository.isWordReal(guessedWord)){
-            return session;
+            return maskWordIfInProgress(session);
         }
 
         String realWord = session.word().toLowerCase();

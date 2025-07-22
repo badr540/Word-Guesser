@@ -9,7 +9,7 @@ function CreateGame(){
         .then(response => response.json())
         .then(data =>{ 
             if ("sessionId" in data){
-                setMessage(<a href={`${window.location.origin}?id=${data.sessionId}`}>{window.location.origin}?id={data.sessionId}</a>)
+                setMessage(<a href={`${window.location.origin}?sessionId=${data.sessionId}`}>go to new session</a>)
             }
             else{
                 setMessage(<span>Word does not exist!</span>)

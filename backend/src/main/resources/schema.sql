@@ -12,7 +12,7 @@ CREATE TABLE words (
     id SERIAL PRIMARY KEY,
     word TEXT NOT NULL 
         CHECK (word ~ '^[a-z]+$') -- Error: "Word must contain only lower case letters"
-        UNIQUE,
+        , -- UNIQUE
     rarity INT NOT NULL
 );
 
