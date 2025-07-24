@@ -6,11 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "postbuild":"xcopy /E /Y /I dist\\index.html ..\\backend\\src\\main\\resources\\templates\\ && xcopy /E /Y /I dist\\assets ..\\backend\\src\\main\\resources\\static\\assets\\",
+    "postbuild": "xcopy /E /Y /I dist\\index.html ..\\backend\\src\\main\\resources\\templates\\ && xcopy /E /Y /I dist\\assets ..\\backend\\src\\main\\resources\\static\\assets\\",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "@tailwindcss/postcss": "^4.1.3",
     "@tailwindcss/vite": "^4.1.3",
     "react": "^19.0.0",

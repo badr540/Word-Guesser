@@ -21,7 +21,7 @@ function Timer({time, onTimeout}) {
   }, []);
 
   useEffect(() => {
-    if(seconds<=0){
+    if(seconds<0){
       onTimeout()
     }
   }, [seconds])
@@ -32,7 +32,7 @@ function Timer({time, onTimeout}) {
 
   return(
     <div className="flex text-center items-center uppercase justify-center bg-gray-200 whitespace-nowrap text-gray-900
-    px-2 py-2 text-xs  rounded-sm hover:cursor-pointer uppercase 
+    px-2 py-2 text-xs  rounded-sm  
     sm:px-4 sm:py-2 sm:text-base sm:rounded-sm
     md:px-6 md:py-3 md:rounded-md m-2">
       <div className='w-[5ch]'>{formatTime(seconds)}</div>

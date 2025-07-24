@@ -67,7 +67,6 @@ export const SessionProvider = ({ children }) => {
 
     }, [])
 
-
     const changeSettings = (newSetting) =>{
         if(validateShape(newSetting, DEFAULT_SETTINGS)){   
             localStorage.setItem("Settings", JSON.stringify(newSetting))
@@ -93,6 +92,10 @@ export const SessionProvider = ({ children }) => {
     const handleResponse = async (response) => {
       if (!response.ok) {
         const error = await response.json();
+        if(error.error === "SESSION_NOT_FOUND"){ //saved a session that doesnt exist in the server
+            handleReceivedSession(DEFAULT_SESSION)
+        }
+
         throw new Error(error.message || 'Request failed');
       }
 
