@@ -1,4 +1,4 @@
-package com.words.wordpuzzles.words;
+package com.badrm.wordguesser.words;
 
 public record Word(
             Integer id,

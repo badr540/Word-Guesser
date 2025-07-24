@@ -1,5 +1,4 @@
-package com.words.wordpuzzles.gamesessions;
-
+package com.badrm.wordguesser.gamesessions;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;

@@ -1,5 +1,4 @@
-package com.words.wordpuzzles.gamesessions;
-
+package com.badrm.wordguesser.gamesessions;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Array;

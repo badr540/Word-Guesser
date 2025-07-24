@@ -1,7 +1,5 @@
-package com.words.wordpuzzles.gamesessions;
-
-import com.words.wordpuzzles.words.WordRepository;
-import com.words.wordpuzzles.words.Word;
+package com.badrm.wordguesser.gamesessions;
+import com.badrm.wordguesser.words.*;
 
 import org.springframework.stereotype.Service;
 

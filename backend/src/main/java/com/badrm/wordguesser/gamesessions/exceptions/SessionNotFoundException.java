@@ -1,4 +1,4 @@
-package com.words.wordpuzzles.gamesessions;
+package com.badrm.wordguesser.gamesessions;
 import java.util.UUID;
 
 public class SessionNotFoundException extends RuntimeException {

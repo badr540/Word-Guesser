@@ -8,11 +8,11 @@
 		<version>3.4.4</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.words</groupId>
-	<artifactId>wordpuzzles</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>wordpuzzles</name>
-	<description>Demo project for Spring Boot</description>
+	<groupId>com.badrm</groupId>
+	<artifactId>word-guesser</artifactId>
+	<version>1.0.0</version>
+	<name>Word Guesser</name>
+	<description>A Spring Boot backend service for the Word Guesser game application</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -72,6 +72,36 @@
 		    <version>3.2.4</version>
 		</dependency>
 		
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-data-jdbc</artifactId>
+		    <scope>test</scope>
+		</dependency>
+
+    	<dependency>
+    	    <groupId>org.mockito</groupId>
+    	    <artifactId>mockito-core</artifactId>
+    	    <scope>test</scope>
+    	</dependency>
+		
+		<dependency>
+		    <groupId>com.h2database</groupId>
+		    <artifactId>h2</artifactId>
+		    <scope>test</scope>
+		</dependency>
+    	
+		<dependency>
+    	    <groupId>org.assertj</groupId>
+    	    <artifactId>assertj-core</artifactId>
+    	    <scope>test</scope>
+    	</dependency>
+
+    	<dependency>
+    	    <groupId>com.h2database</groupId>
+    	    <artifactId>h2</artifactId>
+    	    <scope>test</scope>
+    	</dependency>
+
 	</dependencies>
 
 

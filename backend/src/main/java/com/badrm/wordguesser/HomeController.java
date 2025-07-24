@@ -1,4 +1,4 @@
-package com.words.wordpuzzles;
+package com.badrm.wordguesser;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -8,9 +8,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import com.words.wordpuzzles.gamesessions.GameSession;
-import com.words.wordpuzzles.gamesessions.GameSessionService;
-import com.words.wordpuzzles.gamesessions.SessionNotFoundException;
+import com.badrm.wordguesser.gamesessions.GameSession;
+import com.badrm.wordguesser.gamesessions.GameSessionService;
+import com.badrm.wordguesser.gamesessions.SessionNotFoundException;
 
 import org.springframework.stereotype.*;
 import org.springframework.web.bind.annotation.*;

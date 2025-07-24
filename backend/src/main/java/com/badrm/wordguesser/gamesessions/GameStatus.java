@@ -1,4 +1,4 @@
-package com.words.wordpuzzles.gamesessions;
+package com.badrm.wordguesser.gamesessions;
 
 public enum GameStatus {
     WON,

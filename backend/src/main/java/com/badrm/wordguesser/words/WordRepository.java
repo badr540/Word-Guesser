@@ -1,4 +1,4 @@
-package com.words.wordpuzzles.words;
+package com.badrm.wordguesser.words;
 import java.util.Optional;
 
 import org.springframework.jdbc.core.simple.JdbcClient;

@@ -1,4 +1,4 @@
-package com.words.wordpuzzles.gamesessions;
+package com.badrm.wordguesser.gamesessions;
 import java.util.List;
 import java.util.UUID;
 
