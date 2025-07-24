@@ -1,32 +1,22 @@
-# Use OpenJDK 24 with Maven installed (via a custom setup)
-FROM openjdk:24-jdk AS build
-
-# Install Maven manually (because official Maven images use Temurin)
-RUN apt-get update && \
-    apt-get install -y maven && \
-    rm -rf /var/lib/apt/lists/*
-
-# Set working directory
+# Build stage - using Java 17 explicitly
+FROM maven:3.8.7-eclipse-temurin-17 AS build
 WORKDIR /app
 
-# Copy project files
-COPY ./pom.xml /app
-COPY ./src /app/src
+# Copy just the POM file first (for layer caching)
+COPY pom.xml .
 
-# Build the application
-RUN mvn clean package -DskipTests
+# Download all dependencies
+RUN mvn dependency:go-offline -B
 
-# Final runtime image
-FROM openjdk:24-jdk
+# Copy source files
+COPY src ./src
 
-# Set working directory
+# Build with Java 17 compatibility
+RUN mvn package -DskipTests -Dmaven.compiler.release=17
+
+# Runtime stage
+FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
-
-# Copy built JAR from previous stage
 COPY --from=build /app/target/*.jar app.jar
-
-# Expose port
 EXPOSE 8080
-
-# Run app
-CMD ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
