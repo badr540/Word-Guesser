@@ -2,7 +2,7 @@ import { useState } from 'react'
 import Header from './components/Header.jsx'
 import { SessionProvider } from './contexts/SessionContext.jsx';
 import { KeyListenerProvider } from './contexts/KeyListenerContext.jsx';
-import Wordle from './components/Wordle.jsx'
+import GameContainer from './components/GameContainer.jsx'
 import Footer from './components/Footer.jsx';
 function App() {
   if (!localStorage.getItem("Statistics")) {
@@ -15,7 +15,7 @@ function App() {
       <KeyListenerProvider>
         <div className="flex flex-col min-h-screen">
           <Header/>
-          <Wordle/>
+          <GameContainer/>
           <Footer/>
         </div>
       </KeyListenerProvider>

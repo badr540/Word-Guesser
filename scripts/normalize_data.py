@@ -13,7 +13,6 @@ RARITY_THRESHOLDS = [
 
 MAX_WORDS_TO_PROCESS = 50000 #only using the 50k most common words
 
-
 def get_rarity(rank):
     for threshold, rarity in RARITY_THRESHOLDS:
       if rank < threshold:
