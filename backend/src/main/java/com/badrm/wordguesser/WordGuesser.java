@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class WordpuzzlesApplication {
+public class WordGuesser {
 
 	public static void main(String[] args) {
-		SpringApplication.run(WordpuzzlesApplication.class, args);
+		SpringApplication.run(WordGuesser.class, args);
 	}
 
 }
