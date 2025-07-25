@@ -45,3 +45,5 @@ A full-stack word guessing game inspired by Wordle, built with a Spring Boot bac
 ## Disclaimer
 
 This project is built for learning and showcasing purposes only.
+All rights reserved. Not for commercial use.
+
